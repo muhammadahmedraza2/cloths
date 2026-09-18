@@ -1,9 +1,13 @@
+<!-- Backdrop: only visible/active on mobile when sidebar is open (see CSS) -->
+<div class="sidebar-backdrop" [class.sidebar-backdrop-show]="open" (click)="onBackdropClick()"></div>
+
 <aside class="app-sidebar" [class.app-sidebar-open]="open">
-  <div class="sidebar-search p-3">
+  <div class="sidebar-search p-3 d-flex align-items-center gap-2">
     <div class="input-group input-group-sm">
       <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
       <input type="text" class="form-control border-start-0" placeholder="Search by Interface" />
     </div>
+    <button type="button" class="btn-close sidebar-close-btn d-lg-none" aria-label="Close" (click)="onBackdropClick()"></button>
   </div>
 
   <nav class="sidebar-nav">
@@ -22,6 +26,7 @@
                   class="nav-child-link"
                   [routerLink]="['/app/master', child.formId]"
                   routerLinkActive="active"
+                  (click)="onLinkClick()"
                 >
                   {{ child.label }}
                 </a>
@@ -30,7 +35,7 @@
           }
         </div>
       } @else {
-        <a class="nav-link-item" [routerLink]="item.route" routerLinkActive="active">
+        <a class="nav-link-item" [routerLink]="item.route" routerLinkActive="active" (click)="onLinkClick()">
           <i class="bi" [ngClass]="item.icon"></i>
           <span class="nav-label">{{ item.label }}</span>
         </a>

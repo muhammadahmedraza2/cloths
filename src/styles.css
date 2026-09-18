@@ -186,6 +186,10 @@ body {
   color: #e4edf8;
 }
 
+.text-mute {
+  color: white !important;
+}
+
 .dash-card {
   display: flex;
   flex-direction: column;
