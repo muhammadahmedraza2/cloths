@@ -1,0 +1,24 @@
+<header class="app-header d-flex align-items-center justify-content-between px-3">
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-link text-white d-lg-none p-0 me-2" (click)="toggleSidebar.emit()">
+      <i class="bi bi-list fs-3"></i>
+    </button>
+    <button class="btn btn-link text-white p-0 me-2" (click)="goHome()" title="Back">
+      <i class="bi bi-arrow-left fs-5"></i>
+    </button>
+    <span class="fw-semibold fs-5">{{ pageTitle }}</span>
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    <i class="bi bi-bell fs-5" title="Notifications"></i>
+    <i class="bi bi-star fs-5" title="Favorites"></i>
+    <button class="btn btn-link text-white p-0" (click)="goHome()" title="Home">
+      <i class="bi bi-house-door fs-5"></i>
+    </button>
+    @if (currentUser) {
+      <span class="small d-none d-md-inline">{{ currentUser.fullName }}</span>
+    }
+    <button class="btn btn-link text-white p-0" (click)="logout()" title="Logout">
+      <i class="bi bi-power fs-5"></i>
+    </button>
+  </div>
+</header>

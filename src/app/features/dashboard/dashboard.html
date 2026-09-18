@@ -1,0 +1,19 @@
+<div class="page-wrap">
+  <div class="welcome-banner mb-4">
+    <h2 class="mb-1">Welcome to Clothing ERP</h2>
+    <p class="mb-0 text-muted">Sales, Purchase, Inventory, Setup &amp; Finance — all in one place.</p>
+  </div>
+
+  <div class="row g-3">
+    @for (card of cards; track card.formId) {
+      <div class="col-6 col-md-4 col-lg-3">
+        <a class="dash-card text-decoration-none" [routerLink]="['/app/master', card.formId]">
+          <div class="dash-icon bg-{{ card.color }}-subtle text-{{ card.color }}">
+            <i class="bi {{ card.icon }}"></i>
+          </div>
+          <div class="dash-label">{{ card.label }}</div>
+        </a>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,40 @@
+<aside class="app-sidebar" [class.app-sidebar-open]="open">
+  <div class="sidebar-search p-3">
+    <div class="input-group input-group-sm">
+      <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+      <input type="text" class="form-control border-start-0" placeholder="Search by Interface" />
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (item of menu; track item.label) {
+      @if (item.children) {
+        <div class="nav-group">
+          <button type="button" class="nav-link-item" (click)="toggle(item.label)">
+            <i class="bi" [ngClass]="item.icon"></i>
+            <span class="nav-label">{{ item.label }}</span>
+            <i class="bi ms-auto chevron" [class.bi-chevron-down]="!expanded[item.label]" [class.bi-chevron-up]="expanded[item.label]"></i>
+          </button>
+          @if (expanded[item.label]) {
+            <div class="nav-children">
+              @for (child of item.children; track child.label) {
+                <a
+                  class="nav-child-link"
+                  [routerLink]="['/app/master', child.formId]"
+                  routerLinkActive="active"
+                >
+                  {{ child.label }}
+                </a>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <a class="nav-link-item" [routerLink]="item.route" routerLinkActive="active">
+          <i class="bi" [ngClass]="item.icon"></i>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    }
+  </nav>
+</aside>
