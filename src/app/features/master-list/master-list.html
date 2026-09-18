@@ -58,6 +58,17 @@
                 <td>
                   <button class="btn btn-primary-dark btn-sm" (click)="selectRow(row)">Select</button>
                 </td>
+               
+<td>
+  @if (row['imageUrl']) {
+    <img [src]="row['imageUrl']" class="product-thumb product-thumb-click" (click)="onImageClick(row, $event)" alt="{{ row['name'] }}">
+  } @else {
+    <div class="product-thumb-placeholder product-thumb-click" (click)="onImageClick(row, $event)">
+      <i class="bi bi-image"></i>
+    </div>
+  }
+</td>
+               
                 @for (col of config.columns; track col.key) {
                   <td>{{ row[col.key] }}</td>
                 }

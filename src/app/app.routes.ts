@@ -6,6 +6,8 @@ import { HelpComponent } from './features/help/help';
 import { PrivacyComponent } from './features/privacy/privacy';
 import { LoginComponent } from './features/login/login';
 import { authGuard } from './core/guards/auth.guard';
+import { CartComponent } from './features/cart/cart/cart';
+import { CheckoutComponent } from './features/checkout/checkout/checkout';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -19,6 +21,8 @@ export const routes: Routes = [
       { path: 'master/:formId', component: MasterListComponent, data: { title: 'Setup' } },
       { path: 'help', component: HelpComponent, data: { title: 'Help & Support' } },
       { path: 'privacy', component: PrivacyComponent, data: { title: 'Privacy and Policies' } },
+      { path: 'cart', component: CartComponent, data: { title: 'Shopping Cart' } },
+      { path: 'checkout', component: CheckoutComponent, data: { title: 'Checkout' } },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { FormRegistryService } from '../../core/services/form-registry.service';
 import { DataStoreService } from '../../core/services/data-store.service';
 import { MasterFormConfig, MasterRecord } from '../../core/models/form-config.model';
+import { CartService } from '../../core/services/Cart.Service';
 
 type FilterMode = 'both' | 'authorized' | 'unauthorized';
 
@@ -31,7 +32,9 @@ export class MasterListComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private registry: FormRegistryService,
-    private store: DataStoreService
+    private store: DataStoreService,
+    private cart: CartService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -49,6 +52,17 @@ export class MasterListComponent implements OnInit {
     if (!this.config) return;
     this.records = this.store.getRecords(this.config.formId);
   }
+
+onImageClick(row: MasterRecord, evt: Event): void {
+  evt.stopPropagation();
+  this.cart.addToCart({
+    id: row.id,
+    name: row['name'] || row['code'],
+    imageUrl: row['imageUrl'],
+    price: Number(row['price']) || 0,
+  });
+  this.router.navigate(['/app/cart']);
+}
 
   get filteredRecords(): MasterRecord[] {
     let list = [...this.records];

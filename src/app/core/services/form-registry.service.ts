@@ -236,7 +236,14 @@ export class FormRegistryService {
         { key: 'amount', label: 'Amount (Rs.)' },
       ],
       seedData: [
-        rec('1', { code: 'INV-3001', name: 'Ali Garments Outlet', amount: '45,000' }, 'Authorized', 'N'),
+        rec('1', {
+          code: 'SO-1001',
+          name: 'Ali Garments Outlet',
+          amount: '45,000',
+          date: '12-Sep-2026',
+          imageUrl: 'https://via.placeholder.com/80x80.png?text=Item',
+          price: '4500',
+        }, 'Authorized', 'N'),
       ],
     },
     2003: {

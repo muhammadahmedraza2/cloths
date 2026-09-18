@@ -220,6 +220,18 @@ body {
   font-size: 1.4rem;
 }
 
+/* image */
+
+.product-thumb-click {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.product-thumb-click:hover {
+  transform: scale(1.15);
+}
+
+/* image */
+
 .dash-label {
   font-weight: 600;
   font-size: 0.9rem;
