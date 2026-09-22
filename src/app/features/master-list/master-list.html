@@ -10,6 +10,10 @@
     </button>
   </div>
 
+  @if (loadError) {
+    <div class="alert alert-danger">{{ loadError }}</div>
+  }
+
   <div class="card erp-card">
     <div class="card-body">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
@@ -44,6 +48,7 @@
           <thead>
             <tr>
               <th>Select</th>
+              <th>Image</th>
               @for (col of config.columns; track col.key) {
                 <th>{{ col.label }}</th>
               }
@@ -58,19 +63,17 @@
                 <td>
                   <button class="btn btn-primary-dark btn-sm" (click)="selectRow(row)">Select</button>
                 </td>
-               
-<td>
-  @if (row['imageUrl']) {
-    <img [src]="row['imageUrl']" class="product-thumb product-thumb-click" (click)="onImageClick(row, $event)" alt="{{ row['name'] }}">
-  } @else {
-    <div class="product-thumb-placeholder product-thumb-click" (click)="onImageClick(row, $event)">
-      <i class="bi bi-image"></i>
-    </div>
-  }
-</td>
-               
+                <td>
+                  @if (row.fields['imageUrl']) {
+                    <img [src]="row.fields['imageUrl']" class="product-thumb product-thumb-click" (click)="onImageClick(row, $event)" alt="">
+                  } @else {
+                    <div class="product-thumb-placeholder product-thumb-click" (click)="onImageClick(row, $event)">
+                      <i class="bi bi-image"></i>
+                    </div>
+                  }
+                </td>
                 @for (col of config.columns; track col.key) {
-                  <td>{{ row[col.key] }}</td>
+                  <td>{{ row.fields[col.key] }}</td>
                 }
                 <td>
                   <span class="badge" [class.text-bg-success]="row.status === 'Authorized'" [class.text-bg-warning]="row.status === 'UnAuthorize'">
@@ -92,7 +95,7 @@
             }
             @empty {
               <tr>
-                <td [attr.colspan]="config.columns.length + 4" class="text-center text-muted py-4">
+                <td [attr.colspan]="config.columns.length + 5" class="text-center text-muted py-4">
                   No records found.
                 </td>
               </tr>

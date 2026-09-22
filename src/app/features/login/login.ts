@@ -13,16 +13,30 @@ export class LoginComponent {
   username = '';
   password = '';
   errorMsg = '';
+  submitting = false;
 
   constructor(private auth: AuthService, private router: Router) {}
 
   submit(): void {
-    const ok = this.auth.login(this.username, this.password);
-    if (ok) {
-      this.errorMsg = '';
-      this.router.navigate(['/app/dashboard']);
-    } else {
+    if (!this.username.trim() || !this.password.trim()) {
       this.errorMsg = 'Please enter both username and password.';
+      return;
     }
+
+    this.errorMsg = '';
+    this.submitting = true;
+
+    this.auth.login(this.username, this.password).subscribe({
+      next: () => {
+        this.submitting = false;
+        this.router.navigate(['/app/dashboard']);
+      },
+      error: (err) => {
+        this.submitting = false;
+        this.errorMsg = err.status === 401
+          ? 'Invalid username or password.'
+          : 'Something went wrong. Please check your connection and try again.';
+      },
+    });
   }
 }

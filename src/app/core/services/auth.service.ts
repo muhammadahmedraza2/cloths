@@ -1,51 +1,40 @@
-import { Injectable, signal } from '@angular/core';
-
-export interface AppUser {
-  username: string;
-  fullName: string;
-  role: string;
-}
-
-const STORAGE_KEY = 'clothing-erp-auth-user';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { LoginRequest, LoginResponse } from '../models/auth.model';
+import { TokenService } from './token.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private userSignal = signal<AppUser | null>(this.readStoredUser());
-  readonly currentUser = this.userSignal.asReadonly();
+  private http = inject(HttpClient);
+  private tokenService = inject(TokenService);
 
-  private readStoredUser(): AppUser | null {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as AppUser) : null;
-    } catch {
-      return null;
-    }
-  }
+  private readonly baseUrl = `${environment.apiUrl}/auth`;
 
-  isLoggedIn(): boolean {
-    return this.userSignal() !== null;
-  }
+  login(username: string, password: string): Observable<LoginResponse> {
+    const payload: LoginRequest = { username, password };
 
-  /**
-   * Demo login: any non-empty username/password combination succeeds.
-   * Swap this out for a real HTTP call to your auth API.
-   */
-  login(username: string, password: string): boolean {
-    if (!username.trim() || !password.trim()) {
-      return false;
-    }
-    const user: AppUser = {
-      username: username.trim(),
-      fullName: username.trim(),
-      role: 'Administrator',
-    };
-    this.userSignal.set(user);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    return true;
+    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, payload).pipe(
+      tap((res) => {
+        this.tokenService.setSession(res.token, {
+          username: res.username,
+          fullName: res.fullName,
+          role: res.role,
+        });
+      })
+    );
   }
 
   logout(): void {
-    this.userSignal.set(null);
-    localStorage.removeItem(STORAGE_KEY);
+    this.tokenService.clearSession();
+  }
+
+  isLoggedIn(): boolean {
+    return this.tokenService.isLoggedIn();
+  }
+
+  get currentUser() {
+    return this.tokenService.currentUser;
   }
 }

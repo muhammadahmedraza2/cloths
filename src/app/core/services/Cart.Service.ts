@@ -1,68 +1,48 @@
-import { Injectable, signal, computed } from '@angular/core';
-
-export interface CartItem {
-  id: string;
-  name: string;
-  imageUrl?: string;
-  price: number;
-  qty: number;
-}
-
-const STORAGE_KEY = 'clothing-erp-cart';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AddToCartRequest, CartSummaryApi, CheckoutRequest, CheckoutResponse } from '../models/cart.model';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private itemsSignal = signal<CartItem[]>(this.readStored());
-  readonly items = this.itemsSignal.asReadonly();
+  private http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
-  readonly totalQty = computed(() =>
-    this.itemsSignal().reduce((sum, i) => sum + i.qty, 0)
-  );
+  private summarySignal = signal<CartSummaryApi>({ items: [], totalQty: 0, totalAmount: 0 });
+  readonly summary = this.summarySignal.asReadonly();
 
-  readonly totalAmount = computed(() =>
-    this.itemsSignal().reduce((sum, i) => sum + i.qty * i.price, 0)
-  );
-
-  private readStored(): CartItem[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as CartItem[]) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private save(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.itemsSignal()));
-  }
-
-  addToCart(item: Omit<CartItem, 'qty'>, qty = 1): void {
-    const list = [...this.itemsSignal()];
-    const existing = list.find((i) => i.id === item.id);
-    if (existing) {
-      existing.qty += qty;
-    } else {
-      list.push({ ...item, qty });
-    }
-    this.itemsSignal.set(list);
-    this.save();
-  }
-
-  updateQty(id: string, qty: number): void {
-    const list = this.itemsSignal().map((i) =>
-      i.id === id ? { ...i, qty: Math.max(1, qty) } : i
+  loadCart(): Observable<CartSummaryApi> {
+    return this.http.get<CartSummaryApi>(`${this.apiUrl}/cart`).pipe(
+      tap((summary) => this.summarySignal.set(summary))
     );
-    this.itemsSignal.set(list);
-    this.save();
   }
 
-  removeItem(id: string): void {
-    this.itemsSignal.set(this.itemsSignal().filter((i) => i.id !== id));
-    this.save();
+  addToCart(dto: AddToCartRequest): Observable<CartSummaryApi> {
+    return this.http.post<CartSummaryApi>(`${this.apiUrl}/cart/items`, dto).pipe(
+      tap((summary) => this.summarySignal.set(summary))
+    );
   }
 
-  clearCart(): void {
-    this.itemsSignal.set([]);
-    this.save();
+  updateQty(itemId: string, qty: number): Observable<CartSummaryApi> {
+    return this.http.put<CartSummaryApi>(`${this.apiUrl}/cart/items/${itemId}`, { qty }).pipe(
+      tap((summary) => this.summarySignal.set(summary))
+    );
+  }
+
+  removeItem(itemId: string): Observable<CartSummaryApi> {
+    return this.http.delete<CartSummaryApi>(`${this.apiUrl}/cart/items/${itemId}`).pipe(
+      tap((summary) => this.summarySignal.set(summary))
+    );
+  }
+
+  checkout(dto: CheckoutRequest): Observable<CheckoutResponse> {
+    return this.http.post<CheckoutResponse>(`${this.apiUrl}/checkout`, dto).pipe(
+      tap(() => this.summarySignal.set({ items: [], totalQty: 0, totalAmount: 0 }))
+    );
+  }
+
+  getOrders(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/checkout/orders`);
   }
 }

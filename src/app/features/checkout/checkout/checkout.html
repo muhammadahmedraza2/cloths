@@ -1,20 +1,32 @@
 <div class="page-wrap">
   <h4 class="mb-3">Checkout</h4>
 
-  @if (orderPlaced) {
+  @if (orderPlaced && orderResult) {
     <div class="card erp-card">
       <div class="card-body text-center py-5">
         <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
         <h5>Order Placed Successfully!</h5>
-        <p class="text-muted">Order No: {{ orderNo }} &middot; Payment: {{ paymentMethod === 'cash' ? 'Cash' : 'Bank Transfer' }}</p>
-        <button class="btn btn-primary-dark" (click)="backToDashboard()">Back to Dashboard</button>
+        <p class="text-muted mb-1">Order No: {{ orderResult.orderNo }}</p>
+        <p class="text-muted mb-1">Payment: {{ orderResult.paymentMethod }}</p>
+        @if (orderResult.amountPaid) {
+          <p class="text-muted mb-1">Amount: Rs. {{ orderResult.amountPaid }}</p>
+        }
+        <span class="badge" [class.text-bg-success]="orderResult.paymentStatus !== 'Pending'" [class.text-bg-warning]="orderResult.paymentStatus === 'Pending'">
+          {{ orderResult.paymentStatus }}
+        </span>
+        @if (orderResult.paymentStatus === 'Pending') {
+          <p class="text-muted small mt-2">Aapki payment verify hone ka intezar hai — hum jaldi confirm kar denge.</p>
+        }
+        <div class="mt-3">
+          <button class="btn btn-primary-dark" (click)="backToDashboard()">Back to Dashboard</button>
+        </div>
       </div>
     </div>
   } @else {
     <div class="card erp-card">
       <div class="card-body">
         <h6>Order Summary</h6>
-        @for (item of cart.items(); track item.id) {
+        @for (item of cart.summary().items; track item.id) {
           <div class="d-flex justify-content-between py-1 border-bottom small">
             <span>{{ item.name }} x {{ item.qty }}</span>
             <span>Rs. {{ item.qty * item.price }}</span>
@@ -22,25 +34,64 @@
         }
         <div class="d-flex justify-content-between fw-semibold mt-2">
           <span>Total</span>
-          <span>Rs. {{ cart.totalAmount() }}</span>
+          <span>Rs. {{ cart.summary().totalAmount }}</span>
         </div>
 
         <hr>
 
+        @if (errorMsg) {
+          <div class="alert alert-danger py-2 small">{{ errorMsg }}</div>
+        }
+
         <h6>Payment Method</h6>
-        <div class="d-flex gap-3 mb-4">
+        <div class="d-flex gap-3 mb-3 flex-wrap">
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="pm" id="pmCash" value="cash" [(ngModel)]="paymentMethod">
+            <input class="form-check-input" type="radio" name="pm" id="pmCash" [value]="PaymentMethod.Cash" [(ngModel)]="paymentMethod">
             <label class="form-check-label" for="pmCash"><i class="bi bi-cash-coin me-1"></i>Cash</label>
           </div>
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="pm" id="pmBank" value="bank" [(ngModel)]="paymentMethod">
-            <label class="form-check-label" for="pmBank"><i class="bi bi-bank me-1"></i>Bank</label>
+            <input class="form-check-input" type="radio" name="pm" id="pmBank" [value]="PaymentMethod.BankTransfer" [(ngModel)]="paymentMethod">
+            <label class="form-check-label" for="pmBank"><i class="bi bi-bank me-1"></i>Bank Transfer</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="pm" id="pmEasy" [value]="PaymentMethod.EasyPaisa" [(ngModel)]="paymentMethod">
+            <label class="form-check-label" for="pmEasy"><i class="bi bi-phone me-1"></i>Easypaisa</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="pm" id="pmJazz" [value]="PaymentMethod.JazzCash" [(ngModel)]="paymentMethod">
+            <label class="form-check-label" for="pmJazz"><i class="bi bi-phone me-1"></i>JazzCash</label>
           </div>
         </div>
 
-        <button class="btn btn-primary-dark w-100" [disabled]="cart.items().length === 0" (click)="placeOrder()">
-          Place Order
+        @if (needsBankDetails) {
+          <div class="row g-3 mb-3">
+            @if (paymentMethod === PaymentMethod.BankTransfer) {
+              <div class="col-md-6">
+                <label class="form-label">Bank Name</label>
+                <input type="text" class="form-control" [(ngModel)]="bankName" name="bankName" placeholder="e.g. Al Habib Bank">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Account Number</label>
+                <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber">
+              </div>
+            }
+            <div class="col-md-6">
+              <label class="form-label">Transaction Reference</label>
+              <input type="text" class="form-control" [(ngModel)]="transactionReference" name="transactionReference" placeholder="e.g. TXN-8827364">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Amount Paid (Rs.)</label>
+              <input type="number" class="form-control" [(ngModel)]="amountPaid" name="amountPaid" placeholder="e.g. 2000">
+            </div>
+          </div>
+        }
+
+        <button class="btn btn-primary-dark w-100" [disabled]="cart.summary().items.length === 0 || submitting" (click)="placeOrder()">
+          @if (submitting) {
+            <span class="spinner-border spinner-border-sm me-2"></span> Placing order...
+          } @else {
+            Place Order
+          }
         </button>
       </div>
     </div>

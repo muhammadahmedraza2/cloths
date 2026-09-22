@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import * as XLSX from 'xlsx';
-import { FormRegistryService } from '../../core/services/form-registry.service';
-import { DataStoreService } from '../../core/services/data-store.service';
-import { MasterFormConfig, MasterRecord } from '../../core/models/form-config.model';
+import { MasterDataService } from '../../core/services/master-data.service';
+import { Router } from '@angular/router';
+import { FormDefinitionApi, MasterRecordApi } from '../../core/models/master-record.model';
 import { CartService } from '../../core/services/Cart.Service';
 
 type FilterMode = 'both' | 'authorized' | 'unauthorized';
@@ -17,8 +17,10 @@ type FilterMode = 'both' | 'authorized' | 'unauthorized';
   templateUrl: './master-list.html',
 })
 export class MasterListComponent implements OnInit {
-  config?: MasterFormConfig;
-  records: MasterRecord[] = [];
+  formId!: number;
+  config?: FormDefinitionApi;
+  records: MasterRecordApi[] = [];
+  loadError = '';
 
   filterMode: FilterMode = 'both';
   searchTerm = '';
@@ -27,70 +29,56 @@ export class MasterListComponent implements OnInit {
 
   showModal = false;
   isEditing = false;
+  editingId = '';
   formModel: Record<string, any> = {};
 
   constructor(
     private route: ActivatedRoute,
-    private registry: FormRegistryService,
-    private store: DataStoreService,
+    private masterData: MasterDataService,
     private cart: CartService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      const formId = Number(params.get('formId'));
-      this.config = this.registry.getById(formId);
+      this.formId = Number(params.get('formId'));
       this.filterMode = 'both';
       this.searchTerm = '';
       this.currentPage = 1;
+      this.loadConfig();
       this.refresh();
     });
   }
 
+  loadConfig(): void {
+    this.masterData.getFormDefinition(this.formId).subscribe({
+      next: (cfg) => (this.config = cfg),
+      error: () => (this.loadError = 'Could not load form definition.'),
+    });
+  }
+
   refresh(): void {
-    if (!this.config) return;
-    this.records = this.store.getRecords(this.config.formId);
+    const statusParam = this.filterMode === 'both' ? undefined : this.filterMode;
+    this.masterData.getRecords(this.formId, statusParam, this.searchTerm || undefined).subscribe({
+      next: (records) => {
+        this.records = records;
+        this.loadError = '';
+      },
+      error: () => (this.loadError = 'Could not load records. Please check your connection.'),
+    });
   }
 
-onImageClick(row: MasterRecord, evt: Event): void {
-  evt.stopPropagation();
-  this.cart.addToCart({
-    id: row.id,
-    name: row['name'] || row['code'],
-    imageUrl: row['imageUrl'],
-    price: Number(row['price']) || 0,
-  });
-  this.router.navigate(['/app/cart']);
-}
-
-  get filteredRecords(): MasterRecord[] {
-    let list = [...this.records];
-    if (this.filterMode === 'authorized') {
-      list = list.filter((r) => r.status === 'Authorized');
-    } else if (this.filterMode === 'unauthorized') {
-      list = list.filter((r) => r.status === 'UnAuthorize');
-    }
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.trim().toLowerCase();
-      list = list.filter((r) =>
-        Object.values(r).some((v) => String(v ?? '').toLowerCase().includes(term))
-      );
-    }
-    return list;
-  }
-
-  get pagedRecords(): MasterRecord[] {
+  get pagedRecords(): MasterRecordApi[] {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredRecords.slice(start, start + this.pageSize);
+    return this.records.slice(start, start + this.pageSize);
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredRecords.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.records.length / this.pageSize));
   }
 
   get rangeLabel(): string {
-    const total = this.filteredRecords.length;
+    const total = this.records.length;
     if (total === 0) return '0 - 0 of 0';
     const start = (this.currentPage - 1) * this.pageSize + 1;
     const end = Math.min(total, this.currentPage * this.pageSize);
@@ -107,10 +95,12 @@ onImageClick(row: MasterRecord, evt: Event): void {
 
   onSearch(): void {
     this.currentPage = 1;
+    this.refresh();
   }
 
   onFilterChange(): void {
     this.currentPage = 1;
+    this.refresh();
   }
 
   openAddNew(): void {
@@ -118,14 +108,14 @@ onImageClick(row: MasterRecord, evt: Event): void {
     this.isEditing = false;
     const blank: Record<string, any> = {};
     this.config.columns.forEach((c) => (blank[c.key] = ''));
-    blank['closed'] = 'N';
     this.formModel = blank;
     this.showModal = true;
   }
 
-  selectRow(record: MasterRecord): void {
+  selectRow(record: MasterRecordApi): void {
     this.isEditing = true;
-    this.formModel = { ...record };
+    this.editingId = record.id;
+    this.formModel = { ...record.fields, closed: record.closed };
     this.showModal = true;
   }
 
@@ -135,46 +125,59 @@ onImageClick(row: MasterRecord, evt: Event): void {
 
   saveRecord(): void {
     if (!this.config) return;
-    if (this.isEditing) {
-      const updated: MasterRecord = {
-        ...(this.formModel as MasterRecord),
-      };
-      this.store.updateRecord(this.config.formId, updated);
-    } else {
-      const newRecord: MasterRecord = {
-        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-        status: 'UnAuthorize',
-        closed: this.formModel['closed'] || 'N',
-        ...this.formModel,
-      };
-      this.store.addRecord(this.config.formId, newRecord);
-    }
-    this.showModal = false;
-    this.refresh();
+    const { closed, ...fields } = this.formModel;
+    const dto = { closed, fields };
+
+    const save$ = this.isEditing
+      ? this.masterData.updateRecord(this.formId, this.editingId, dto)
+      : this.masterData.createRecord(this.formId, dto);
+
+    save$.subscribe({
+      next: () => {
+        this.showModal = false;
+        this.refresh();
+      },
+      error: () => alert('Save failed. Please try again.'),
+    });
   }
 
-  authorizeRow(record: MasterRecord, evt: Event): void {
+  authorizeRow(record: MasterRecordApi, evt: Event): void {
     evt.stopPropagation();
-    if (!this.config) return;
-    const updated: MasterRecord = { ...record, status: 'Authorized' };
-    this.store.updateRecord(this.config.formId, updated);
-    this.refresh();
+    this.masterData.authorizeRecord(this.formId, record.id).subscribe({
+      next: () => this.refresh(),
+      error: () => alert('Authorize failed.'),
+    });
   }
 
-  deleteRow(record: MasterRecord, evt: Event): void {
+  deleteRow(record: MasterRecordApi, evt: Event): void {
     evt.stopPropagation();
-    if (!this.config) return;
-    if (confirm(`Delete "${record['name'] || record['code'] || record.id}"?`)) {
-      this.store.deleteRecord(this.config.formId, record.id);
-      this.refresh();
-    }
+    if (!confirm(`Delete "${record.fields['name'] || record.fields['code'] || record.id}"?`)) return;
+
+    this.masterData.deleteRecord(this.formId, record.id).subscribe({
+      next: () => this.refresh(),
+      error: () => alert('Delete failed.'),
+    });
+  }
+
+  /** Clicking a product image/placeholder adds it to the cart and jumps there. */
+  onImageClick(record: MasterRecordApi, evt: Event): void {
+    evt.stopPropagation();
+    this.cart.addToCart({
+      productId: record.id,
+      name: record.fields['name'] || record.fields['code'] || 'Item',
+      imageUrl: record.fields['imageUrl'] || undefined,
+      price: Number(record.fields['price']) || 0,
+    }).subscribe({
+      next: () => this.router.navigate(['/app/cart']),
+      error: () => alert('Could not add to cart.'),
+    });
   }
 
   exportToExcel(): void {
     if (!this.config) return;
-    const data = this.filteredRecords.map((r) => {
+    const data = this.records.map((r) => {
       const row: Record<string, any> = {};
-      this.config!.columns.forEach((c) => (row[c.label] = r[c.key]));
+      this.config!.columns.forEach((c) => (row[c.label] = r.fields[c.key]));
       row['Status'] = r.status;
       row['Closed'] = r.closed;
       return row;

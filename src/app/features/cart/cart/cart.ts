@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CartService } from '../../../core/services/Cart.Service';
@@ -9,11 +9,25 @@ import { CartService } from '../../../core/services/Cart.Service';
   imports: [FormsModule],
   templateUrl: './cart.html',
 })
-export class CartComponent {
-  constructor(public cart: CartService, private router: Router) {}
+export class CartComponent implements OnInit {
+  cart = inject(CartService);
+  private router = inject(Router);
+
+  ngOnInit(): void {
+    this.cart.loadCart().subscribe();
+  }
+
+  updateQty(itemId: string, qty: number): void {
+    if (qty < 1) return;
+    this.cart.updateQty(itemId, qty).subscribe();
+  }
+
+  removeItem(itemId: string): void {
+    this.cart.removeItem(itemId).subscribe();
+  }
 
   proceed(): void {
-    if (this.cart.items().length === 0) return;
+    if (this.cart.summary().items.length === 0) return;
     this.router.navigate(['/app/checkout']);
   }
 }
