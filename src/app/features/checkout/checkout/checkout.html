@@ -6,12 +6,15 @@
       <div class="card-body text-center py-5">
         <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
         <h5>Order Placed Successfully!</h5>
-        <p class="text-muted mb-1">Order No: {{ orderResult.orderNo }}</p>
+        <p class="text-muted mb-1">Order No: <strong>{{ orderResult.orderNo }}</strong></p>
         <p class="text-muted mb-1">Payment: {{ orderResult.paymentMethod }}</p>
-        @if (orderResult.amountPaid) {
-          <p class="text-muted mb-1">Amount: Rs. {{ orderResult.amountPaid }}</p>
+        @if (orderResult.bankName) {
+          <p class="text-muted mb-1">Bank: {{ orderResult.bankName }}</p>
         }
-        <span class="badge" [class.text-bg-success]="orderResult.paymentStatus !== 'Pending'" [class.text-bg-warning]="orderResult.paymentStatus === 'Pending'">
+        @if (orderResult.amountPaid) {
+          <p class="text-muted mb-1">Amount: Rs. {{ orderResult.amountPaid | number }}</p>
+        }
+        <span class="badge fs-6" [class.text-bg-success]="orderResult.paymentStatus !== 'Pending'" [class.text-bg-warning]="orderResult.paymentStatus === 'Pending'">
           {{ orderResult.paymentStatus }}
         </span>
         @if (orderResult.paymentStatus === 'Pending') {
@@ -23,76 +26,123 @@
       </div>
     </div>
   } @else {
-    <div class="card erp-card">
-      <div class="card-body">
-        <h6>Order Summary</h6>
-        @for (item of cart.summary().items; track item.id) {
-          <div class="d-flex justify-content-between py-1 border-bottom small">
-            <span>{{ item.name }} x {{ item.qty }}</span>
-            <span>Rs. {{ item.qty * item.price }}</span>
-          </div>
-        }
-        <div class="d-flex justify-content-between fw-semibold mt-2">
-          <span>Total</span>
-          <span>Rs. {{ cart.summary().totalAmount }}</span>
-        </div>
+    <div class="row g-3">
+      <!-- LEFT: Order summary with item thumbnails -->
+      <div class="col-lg-5">
+        <div class="card erp-card h-100">
+          <div class="card-body">
+            <h6 class="mb-3"><i class="bi bi-bag-check me-2"></i>Order Summary</h6>
 
-        <hr>
+            <div class="checkout-items">
+              @for (item of cart.summary().items; track item.id) {
+                <div class="checkout-item d-flex align-items-center gap-3 py-2 border-bottom">
+                  @if (item.imageUrl) {
+                    <img [src]="item.imageUrl" class="checkout-item-thumb">
+                  } @else {
+                    <div class="checkout-item-thumb checkout-item-thumb-placeholder">
+                      <i class="bi bi-image"></i>
+                    </div>
+                  }
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold small">{{ item.name }}</div>
+                    <div class="text-muted small">Qty: {{ item.qty }} &times; Rs. {{ item.price | number }}</div>
+                  </div>
+                  <div class="fw-semibold">Rs. {{ item.qty * item.price | number }}</div>
+                </div>
+              }
+            </div>
 
-        @if (errorMsg) {
-          <div class="alert alert-danger py-2 small">{{ errorMsg }}</div>
-        }
-
-        <h6>Payment Method</h6>
-        <div class="d-flex gap-3 mb-3 flex-wrap">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="pm" id="pmCash" [value]="PaymentMethod.Cash" [(ngModel)]="paymentMethod">
-            <label class="form-check-label" for="pmCash"><i class="bi bi-cash-coin me-1"></i>Cash</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="pm" id="pmBank" [value]="PaymentMethod.BankTransfer" [(ngModel)]="paymentMethod">
-            <label class="form-check-label" for="pmBank"><i class="bi bi-bank me-1"></i>Bank Transfer</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="pm" id="pmEasy" [value]="PaymentMethod.EasyPaisa" [(ngModel)]="paymentMethod">
-            <label class="form-check-label" for="pmEasy"><i class="bi bi-phone me-1"></i>Easypaisa</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="pm" id="pmJazz" [value]="PaymentMethod.JazzCash" [(ngModel)]="paymentMethod">
-            <label class="form-check-label" for="pmJazz"><i class="bi bi-phone me-1"></i>JazzCash</label>
+            <div class="d-flex justify-content-between text-muted small mt-3 pt-2">
+              <span>Subtotal ({{ cart.summary().totalQty }} items)</span>
+              <span>Rs. {{ cart.summary().totalAmount | number }}</span>
+            </div>
+            <div class="d-flex justify-content-between fw-bold fs-5 mt-2 pt-2 border-top">
+              <span>Total</span>
+              <span class="text-primary-em">Rs. {{ cart.summary().totalAmount | number }}</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        @if (needsBankDetails) {
-          <div class="row g-3 mb-3">
-            @if (paymentMethod === PaymentMethod.BankTransfer) {
-              <div class="col-md-6">
-                <label class="form-label">Bank Name</label>
-                <input type="text" class="form-control" [(ngModel)]="bankName" name="bankName" placeholder="e.g. Al Habib Bank">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Account Number</label>
-                <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber">
+      <!-- RIGHT: Payment method selection -->
+      <div class="col-lg-7">
+        <div class="card erp-card">
+          <div class="card-body">
+            @if (errorMsg) {
+              <div class="alert alert-danger py-2 small">{{ errorMsg }}</div>
+            }
+
+            <h6 class="mb-3"><i class="bi bi-credit-card me-2"></i>How will you pay?</h6>
+
+            <div class="payment-method-grid mb-3">
+              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.Cash" (click)="paymentMethod = PaymentMethod.Cash">
+                <i class="bi bi-cash-coin"></i>
+                <span>Cash</span>
+              </button>
+              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.BankTransfer" (click)="paymentMethod = PaymentMethod.BankTransfer">
+                <i class="bi bi-bank"></i>
+                <span>Bank Transfer</span>
+              </button>
+              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.EasyPaisa" (click)="paymentMethod = PaymentMethod.EasyPaisa">
+                <i class="bi bi-phone"></i>
+                <span>Easypaisa</span>
+              </button>
+              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.JazzCash" (click)="paymentMethod = PaymentMethod.JazzCash">
+                <i class="bi bi-phone"></i>
+                <span>JazzCash</span>
+              </button>
+            </div>
+
+            @if (paymentMethod === PaymentMethod.Cash) {
+              <div class="cash-note">
+                <i class="bi bi-info-circle me-2"></i>
+                Aap delivery/counter pe cash de sakte hain — order turant confirm ho jayega.
               </div>
             }
-            <div class="col-md-6">
-              <label class="form-label">Transaction Reference</label>
-              <input type="text" class="form-control" [(ngModel)]="transactionReference" name="transactionReference" placeholder="e.g. TXN-8827364">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Amount Paid (Rs.)</label>
-              <input type="number" class="form-control" [(ngModel)]="amountPaid" name="amountPaid" placeholder="e.g. 2000">
-            </div>
-          </div>
-        }
 
-        <button class="btn btn-primary-dark w-100" [disabled]="cart.summary().items.length === 0 || submitting" (click)="placeOrder()">
-          @if (submitting) {
-            <span class="spinner-border spinner-border-sm me-2"></span> Placing order...
-          } @else {
-            Place Order
-          }
-        </button>
+            @if (needsBankDetails) {
+              <div class="row g-3 mt-1">
+                @if (isBankTransfer) {
+                  <div class="col-md-6">
+                    <label class="form-label">Select Bank</label>
+                    @if (banksLoading) {
+                      <div class="form-control-sm text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading banks...</div>
+                    } @else if (banks.length > 0) {
+                      <select class="form-select" [(ngModel)]="bankName" name="bankName">
+                        <option value="" disabled selected>Choose your bank</option>
+                        @for (b of banks; track b.code) {
+                          <option [value]="b.name">{{ b.name }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <input type="text" class="form-control" [(ngModel)]="bankName" name="bankName" placeholder="e.g. Al Habib Bank">
+                    }
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Account Number <span class="text-muted">(optional)</span></label>
+                    <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber" placeholder="Your account/IBAN">
+                  </div>
+                }
+                <div class="col-md-6">
+                  <label class="form-label">Transaction Reference No.</label>
+                  <input type="text" class="form-control" [(ngModel)]="transactionReference" name="transactionReference" placeholder="e.g. TXN-8827364">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Amount Paid (Rs.)</label>
+                  <input type="number" class="form-control" [(ngModel)]="amountPaid" name="amountPaid" [placeholder]="cart.summary().totalAmount.toString()">
+                </div>
+              </div>
+            }
+
+            <button class="btn btn-primary-dark w-100 mt-4 py-2" [disabled]="cart.summary().items.length === 0 || submitting" (click)="placeOrder()">
+              @if (submitting) {
+                <span class="spinner-border spinner-border-sm me-2"></span> Placing order...
+              } @else {
+                <i class="bi bi-lock-fill me-2"></i> Place Order &mdash; Rs. {{ cart.summary().totalAmount | number }}
+              }
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   }
