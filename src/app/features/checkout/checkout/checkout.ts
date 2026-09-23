@@ -1,11 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CartService } from '../../../core/services/Cart.Service';
 import { MasterDataService } from '../../../core/services/master-data.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { CheckoutResponse, PaymentMethod } from '../../../core/models/cart.model';
 import { DecimalPipe } from '@angular/common';
-
 
 interface BankOption {
   code: string;
@@ -17,21 +17,17 @@ const BANK_SETUP_FORM_ID = 1103; // matches Setup Management > Bank Setup
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [FormsModule,DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe],
   templateUrl: './checkout.html',
 })
 export class CheckoutComponent implements OnInit {
   cart = inject(CartService);
   private router = inject(Router);
   private masterData = inject(MasterDataService);
+  private notifications = inject(NotificationService);
+  private fb = inject(FormBuilder);
 
   PaymentMethod = PaymentMethod;
-
-  paymentMethod: PaymentMethod = PaymentMethod.Cash;
-  bankName = '';
-  accountNumber = '';
-  transactionReference = '';
-  amountPaid: number | null = null;
 
   banks: BankOption[] = [];
   banksLoading = true;
@@ -40,6 +36,18 @@ export class CheckoutComponent implements OnInit {
   orderResult?: CheckoutResponse;
   errorMsg = '';
   submitting = false;
+
+  form = this.fb.nonNullable.group({
+    paymentMethod: [PaymentMethod.Cash, [Validators.required]],
+    bankName: [''],
+    accountNumber: [''],
+    transactionReference: [''],
+    amountPaid: this.fb.control<number | null>(null),
+  });
+
+  get f() {
+    return this.form.controls;
+  }
 
   ngOnInit(): void {
     // Pull the bank list live from Bank Setup (Setup Management) — no hardcoding.
@@ -57,20 +65,26 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
+  selectPaymentMethod(method: PaymentMethod): void {
+    this.f.paymentMethod.setValue(method);
+  }
+
   get needsBankDetails(): boolean {
-    return this.paymentMethod !== PaymentMethod.Cash;
+    return this.f.paymentMethod.value !== PaymentMethod.Cash;
   }
 
   get isBankTransfer(): boolean {
-    return this.paymentMethod === PaymentMethod.BankTransfer;
+    return this.f.paymentMethod.value === PaymentMethod.BankTransfer;
   }
 
   placeOrder(): void {
-    if (this.isBankTransfer && !this.bankName) {
+    const { paymentMethod, bankName, accountNumber, transactionReference, amountPaid } = this.form.getRawValue();
+
+    if (this.isBankTransfer && !bankName) {
       this.errorMsg = 'Please select a bank.';
       return;
     }
-    if (this.needsBankDetails && !this.transactionReference.trim()) {
+    if (this.needsBankDetails && !transactionReference.trim()) {
       this.errorMsg = 'Please enter the transaction reference number.';
       return;
     }
@@ -79,16 +93,24 @@ export class CheckoutComponent implements OnInit {
     this.submitting = true;
 
     this.cart.checkout({
-      paymentMethod: this.paymentMethod,
-      bankName: this.isBankTransfer ? this.bankName : undefined,
-      accountNumber: this.isBankTransfer ? this.accountNumber : undefined,
-      transactionReference: this.needsBankDetails ? this.transactionReference : undefined,
-      amountPaid: this.amountPaid ?? undefined,
+      paymentMethod,
+      bankName: this.isBankTransfer ? bankName : undefined,
+      accountNumber: this.isBankTransfer ? accountNumber : undefined,
+      transactionReference: this.needsBankDetails ? transactionReference : undefined,
+      amountPaid: amountPaid ?? undefined,
     }).subscribe({
       next: (res) => {
         this.submitting = false;
         this.orderResult = res;
         this.orderPlaced = true;
+
+        // Admin ko notify karein ke naya order / payment aaya hai (Bank ya Cash).
+        this.notifications.notifyPaymentReceived({
+          orderNo: res.orderNo,
+          amount: res.totalAmount,
+          method: res.paymentMethod,
+          status: res.paymentStatus,
+        });
       },
       error: () => {
         this.submitting = false;

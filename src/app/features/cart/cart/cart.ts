@@ -1,12 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CartService } from '../../../core/services/Cart.Service';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [FormsModule],
+  imports: [],
   templateUrl: './cart.html',
 })
 export class CartComponent implements OnInit {

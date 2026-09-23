@@ -68,79 +68,81 @@
       <div class="col-lg-7">
         <div class="card erp-card">
           <div class="card-body">
-            @if (errorMsg) {
-              <div class="alert alert-danger py-2 small">{{ errorMsg }}</div>
-            }
-
-            <h6 class="mb-3"><i class="bi bi-credit-card me-2"></i>How will you pay?</h6>
-
-            <div class="payment-method-grid mb-3">
-              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.Cash" (click)="paymentMethod = PaymentMethod.Cash">
-                <i class="bi bi-cash-coin"></i>
-                <span>Cash</span>
-              </button>
-              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.BankTransfer" (click)="paymentMethod = PaymentMethod.BankTransfer">
-                <i class="bi bi-bank"></i>
-                <span>Bank Transfer</span>
-              </button>
-              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.EasyPaisa" (click)="paymentMethod = PaymentMethod.EasyPaisa">
-                <i class="bi bi-phone"></i>
-                <span>Easypaisa</span>
-              </button>
-              <button type="button" class="payment-method-card" [class.selected]="paymentMethod === PaymentMethod.JazzCash" (click)="paymentMethod = PaymentMethod.JazzCash">
-                <i class="bi bi-phone"></i>
-                <span>JazzCash</span>
-              </button>
-            </div>
-
-            @if (paymentMethod === PaymentMethod.Cash) {
-              <div class="cash-note">
-                <i class="bi bi-info-circle me-2"></i>
-                Aap delivery/counter pe cash de sakte hain — order turant confirm ho jayega.
-              </div>
-            }
-
-            @if (needsBankDetails) {
-              <div class="row g-3 mt-1">
-                @if (isBankTransfer) {
-                  <div class="col-md-6">
-                    <label class="form-label">Select Bank</label>
-                    @if (banksLoading) {
-                      <div class="form-control-sm text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading banks...</div>
-                    } @else if (banks.length > 0) {
-                      <select class="form-select" [(ngModel)]="bankName" name="bankName">
-                        <option value="" disabled selected>Choose your bank</option>
-                        @for (b of banks; track b.code) {
-                          <option [value]="b.name">{{ b.name }}</option>
-                        }
-                      </select>
-                    } @else {
-                      <input type="text" class="form-control" [(ngModel)]="bankName" name="bankName" placeholder="e.g. Al Habib Bank">
-                    }
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Account Number <span class="text-muted">(optional)</span></label>
-                    <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber" placeholder="Your account/IBAN">
-                  </div>
-                }
-                <div class="col-md-6">
-                  <label class="form-label">Transaction Reference No.</label>
-                  <input type="text" class="form-control" [(ngModel)]="transactionReference" name="transactionReference" placeholder="e.g. TXN-8827364">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Amount Paid (Rs.)</label>
-                  <input type="number" class="form-control" [(ngModel)]="amountPaid" name="amountPaid" [placeholder]="cart.summary().totalAmount.toString()">
-                </div>
-              </div>
-            }
-
-            <button class="btn btn-primary-dark w-100 mt-4 py-2" [disabled]="cart.summary().items.length === 0 || submitting" (click)="placeOrder()">
-              @if (submitting) {
-                <span class="spinner-border spinner-border-sm me-2"></span> Placing order...
-              } @else {
-                <i class="bi bi-lock-fill me-2"></i> Place Order &mdash; Rs. {{ cart.summary().totalAmount | number }}
+            <form [formGroup]="form" (ngSubmit)="placeOrder()">
+              @if (errorMsg) {
+                <div class="alert alert-danger py-2 small">{{ errorMsg }}</div>
               }
-            </button>
+
+              <h6 class="mb-3"><i class="bi bi-credit-card me-2"></i>How will you pay?</h6>
+
+              <div class="payment-method-grid mb-3">
+                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.Cash" (click)="selectPaymentMethod(PaymentMethod.Cash)">
+                  <i class="bi bi-cash-coin"></i>
+                  <span>Cash</span>
+                </button>
+                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.BankTransfer" (click)="selectPaymentMethod(PaymentMethod.BankTransfer)">
+                  <i class="bi bi-bank"></i>
+                  <span>Bank Transfer</span>
+                </button>
+                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.EasyPaisa" (click)="selectPaymentMethod(PaymentMethod.EasyPaisa)">
+                  <i class="bi bi-phone"></i>
+                  <span>Easypaisa</span>
+                </button>
+                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.JazzCash" (click)="selectPaymentMethod(PaymentMethod.JazzCash)">
+                  <i class="bi bi-phone"></i>
+                  <span>JazzCash</span>
+                </button>
+              </div>
+
+              @if (f.paymentMethod.value === PaymentMethod.Cash) {
+                <div class="cash-note">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Aap delivery/counter pe cash de sakte hain — order turant confirm ho jayega.
+                </div>
+              }
+
+              @if (needsBankDetails) {
+                <div class="row g-3 mt-1">
+                  @if (isBankTransfer) {
+                    <div class="col-md-6">
+                      <label class="form-label">Select Bank</label>
+                      @if (banksLoading) {
+                        <div class="form-control-sm text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading banks...</div>
+                      } @else if (banks.length > 0) {
+                        <select class="form-select" formControlName="bankName">
+                          <option value="" disabled>Choose your bank</option>
+                          @for (b of banks; track b.code) {
+                            <option [value]="b.name">{{ b.name }}</option>
+                          }
+                        </select>
+                      } @else {
+                        <input type="text" class="form-control" formControlName="bankName" placeholder="e.g. Al Habib Bank">
+                      }
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Account Number <span class="text-muted">(optional)</span></label>
+                      <input type="text" class="form-control" formControlName="accountNumber" placeholder="Your account/IBAN">
+                    </div>
+                  }
+                  <div class="col-md-6">
+                    <label class="form-label">Transaction Reference No.</label>
+                    <input type="text" class="form-control" formControlName="transactionReference" placeholder="e.g. TXN-8827364">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Amount Paid (Rs.)</label>
+                    <input type="number" class="form-control" formControlName="amountPaid" [placeholder]="cart.summary().totalAmount.toString()">
+                  </div>
+                </div>
+              }
+
+              <button type="submit" class="btn btn-primary-dark w-100 mt-4 py-2" [disabled]="cart.summary().items.length === 0 || submitting">
+                @if (submitting) {
+                  <span class="spinner-border spinner-border-sm me-2"></span> Placing order...
+                } @else {
+                  <i class="bi bi-lock-fill me-2"></i> Place Order &mdash; Rs. {{ cart.summary().totalAmount | number }}
+                }
+              </button>
+            </form>
           </div>
         </div>
       </div>

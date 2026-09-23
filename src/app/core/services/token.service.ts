@@ -34,6 +34,11 @@ export class TokenService {
     return !!this.getToken();
   }
 
+  /** true jab logged-in user ka role 'Admin' ho (case-insensitive). */
+  isAdmin(): boolean {
+    return (this.userSignal()?.role || '').toLowerCase() === 'admin';
+  }
+
   private readUser(): StoredUser | null {
     try {
       const raw = localStorage.getItem(USER_KEY);

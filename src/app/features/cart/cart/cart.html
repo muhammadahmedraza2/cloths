@@ -33,8 +33,8 @@
                 <td>Rs. {{ item.price }}</td>
                 <td style="max-width:90px">
                   <input type="number" min="1" class="form-control form-control-sm"
-                         [ngModel]="item.qty"
-                         (ngModelChange)="updateQty(item.id, $event)">
+                         [value]="item.qty"
+                         (change)="updateQty(item.id, $any($event.target).valueAsNumber)">
                 </td>
                 <td>Rs. {{ item.qty * item.price }}</td>
                 <td>

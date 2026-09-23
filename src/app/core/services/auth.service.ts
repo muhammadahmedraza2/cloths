@@ -37,4 +37,8 @@ export class AuthService {
   get currentUser() {
     return this.tokenService.currentUser;
   }
+
+  isAdmin(): boolean {
+    return this.tokenService.isAdmin();
+  }
 }

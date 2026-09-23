@@ -1,49 +1,69 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { MasterDataService } from '../../core/services/master-data.service';
 import { Router } from '@angular/router';
 import { FormDefinitionApi, MasterRecordApi } from '../../core/models/master-record.model';
 import { CartService } from '../../core/services/Cart.Service';
+import { AuthService } from '../../core/services/auth.service';
 
 type FilterMode = 'both' | 'authorized' | 'unauthorized';
 
 @Component({
   selector: 'app-master-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './master-list.html',
 })
 export class MasterListComponent implements OnInit {
+  private fb = inject(FormBuilder);
+
   formId!: number;
   config?: FormDefinitionApi;
   records: MasterRecordApi[] = [];
   loadError = '';
 
-  filterMode: FilterMode = 'both';
-  searchTerm = '';
-  pageSize = 10;
+  // Filter/search bar — Reactive Form (no two-way binding)
+  filterForm = this.fb.nonNullable.group({
+    filterMode: 'both' as FilterMode,
+    searchTerm: '',
+    pageSize: 10,
+  });
+
   currentPage = 1;
 
   showModal = false;
   isEditing = false;
   editingId = '';
-  formModel: Record<string, any> = {};
+  recordForm: FormGroup = this.fb.group({});
 
   constructor(
     private route: ActivatedRoute,
     private masterData: MasterDataService,
     private cart: CartService,
-    private router: Router
+    private router: Router,
+    private auth: AuthService
   ) {}
+
+  /** Add/Edit/Delete/Authorize/Export sirf Admin role ke liye. Normal user sirf browse + purchase kar sakta hai. */
+  get isAdmin(): boolean {
+    return this.auth.isAdmin();
+  }
+
+  get ff() {
+    return this.filterForm.controls;
+  }
+
+  get pageSize(): number {
+    return this.filterForm.getRawValue().pageSize;
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       this.formId = Number(params.get('formId'));
-      this.filterMode = 'both';
-      this.searchTerm = '';
+      this.filterForm.reset({ filterMode: 'both', searchTerm: '', pageSize: 10 });
       this.currentPage = 1;
       this.loadConfig();
       this.refresh();
@@ -58,8 +78,9 @@ export class MasterListComponent implements OnInit {
   }
 
   refresh(): void {
-    const statusParam = this.filterMode === 'both' ? undefined : this.filterMode;
-    this.masterData.getRecords(this.formId, statusParam, this.searchTerm || undefined).subscribe({
+    const { filterMode, searchTerm } = this.filterForm.getRawValue();
+    const statusParam = filterMode === 'both' ? undefined : filterMode;
+    this.masterData.getRecords(this.formId, statusParam, searchTerm || undefined).subscribe({
       next: (records) => {
         this.records = records;
         this.loadError = '';
@@ -103,19 +124,32 @@ export class MasterListComponent implements OnInit {
     this.refresh();
   }
 
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+  }
+
+  /** Config ke columns se dynamic FormGroup banata hai (sirf Admin ke Add/Edit modal ke liye). */
+  private buildRecordForm(initial: Record<string, any>): FormGroup {
+    const group: Record<string, any> = {};
+    this.config?.columns.forEach((c) => {
+      group[c.key] = [initial[c.key] ?? ''];
+    });
+    group['closed'] = [initial['closed'] ?? 'N'];
+    return this.fb.group(group);
+  }
+
   openAddNew(): void {
-    if (!this.config) return;
+    if (!this.config || !this.isAdmin) return;
     this.isEditing = false;
-    const blank: Record<string, any> = {};
-    this.config.columns.forEach((c) => (blank[c.key] = ''));
-    this.formModel = blank;
+    this.recordForm = this.buildRecordForm({});
     this.showModal = true;
   }
 
   selectRow(record: MasterRecordApi): void {
+    if (!this.isAdmin) return; // user ke liye row click se edit modal nahi khulta
     this.isEditing = true;
     this.editingId = record.id;
-    this.formModel = { ...record.fields, closed: record.closed };
+    this.recordForm = this.buildRecordForm({ ...record.fields, closed: record.closed });
     this.showModal = true;
   }
 
@@ -125,7 +159,12 @@ export class MasterListComponent implements OnInit {
 
   saveRecord(): void {
     if (!this.config) return;
-    const { closed, ...fields } = this.formModel;
+    if (this.recordForm.invalid) {
+      this.recordForm.markAllAsTouched();
+      return;
+    }
+
+    const { closed, ...fields } = this.recordForm.getRawValue();
     const dto = { closed, fields };
 
     const save$ = this.isEditing
@@ -143,6 +182,7 @@ export class MasterListComponent implements OnInit {
 
   authorizeRow(record: MasterRecordApi, evt: Event): void {
     evt.stopPropagation();
+    if (!this.isAdmin) return;
     this.masterData.authorizeRecord(this.formId, record.id).subscribe({
       next: () => this.refresh(),
       error: () => alert('Authorize failed.'),
@@ -151,6 +191,7 @@ export class MasterListComponent implements OnInit {
 
   deleteRow(record: MasterRecordApi, evt: Event): void {
     evt.stopPropagation();
+    if (!this.isAdmin) return;
     if (!confirm(`Delete "${record.fields['name'] || record.fields['code'] || record.id}"?`)) return;
 
     this.masterData.deleteRecord(this.formId, record.id).subscribe({
@@ -159,7 +200,7 @@ export class MasterListComponent implements OnInit {
     });
   }
 
-  /** Clicking a product image/placeholder adds it to the cart and jumps there. */
+  /** Clicking a product image/placeholder adds it to the cart and jumps there (Admin aur User dono kar sakte hain). */
   onImageClick(record: MasterRecordApi, evt: Event): void {
     evt.stopPropagation();
     this.cart.addToCart({
@@ -174,7 +215,7 @@ export class MasterListComponent implements OnInit {
   }
 
   exportToExcel(): void {
-    if (!this.config) return;
+    if (!this.config || !this.isAdmin) return;
     const data = this.records.map((r) => {
       const row: Record<string, any> = {};
       this.config!.columns.forEach((c) => (row[c.label] = r.fields[c.key]));
