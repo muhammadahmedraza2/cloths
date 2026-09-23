@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CartService } from '../../../core/services/Cart.Service';
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { CheckoutResponse, PaymentMethod } from '../../../core/models/cart.model';
+import { DecimalPipe } from '@angular/common';
 
 
 interface BankOption {
@@ -16,7 +17,7 @@ const BANK_SETUP_FORM_ID = 1103; // matches Setup Management > Bank Setup
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule,DecimalPipe],
   templateUrl: './checkout.html',
 })
 export class CheckoutComponent implements OnInit {
