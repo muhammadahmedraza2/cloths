@@ -6,3 +6,14 @@ export interface LoginResponse { success: boolean; message: string; data: LoginD
 export interface RegisterRequest {
   username: string; password: string; fullName: string; email?: string; phoneNumber?: string; pcId?: string;
 }
+<<<<<<< HEAD
+=======
+
+export interface LoginResponse {
+  token: string;
+  expiresAt: string;
+  username: string;
+  fullName: string;
+  role: string;
+}
+>>>>>>> 5149b2c6453205bb16ba4ac8b50d65beef032793

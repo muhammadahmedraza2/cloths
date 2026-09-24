@@ -1,18 +1,17 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { TokenService } from '../services/token.service';
+import { AuthService } from '../services/auth.service';
 
 /**
  * Sirf Admin role wale user ko route access karne deta hai.
  * Non-admin (customer) ko dashboard pe wapas bhej deta hai.
  */
 export const adminGuard: CanActivateFn = () => {
-  const tokenService = inject(TokenService);
+  const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (tokenService.isLoggedIn() && tokenService.isAdmin()) {
-    return true;
+  if (!auth.isLoggedIn()) {
+    return router.createUrlTree(['/login']);
   }
-  router.navigate(['/app/dashboard']);
-  return false;
+  return auth.isAdmin() ? true : router.createUrlTree(['/app/dashboard']);
 };

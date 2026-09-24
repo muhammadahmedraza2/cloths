@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { HeaderComponent } from '../header/header';
+import { PageTitleService } from '../../core/services/page-title.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -11,8 +12,16 @@ import { HeaderComponent } from '../header/header';
   templateUrl: './main-layout.html',
 })
 export class MainLayoutComponent {
-  sidebarOpen = true;
-  pageTitle = 'Dashboard';
+  // Mobile par sidebar band shuru ho (desktop par yeh flag use hi nahi hota)
+  sidebarOpen = false;
+
+  private routeTitle = 'Dashboard';
+  private readonly pageTitleService = inject(PageTitleService);
+
+  /** Master forms ka title form ke naam se, baaki routes ka title route data se. */
+  get pageTitle(): string {
+    return this.pageTitleService.override() ?? this.routeTitle;
+  }
 
   constructor(private router: Router, private route: ActivatedRoute) {
     this.router.events
@@ -28,7 +37,7 @@ export class MainLayoutComponent {
         mergeMap((r) => r.data)
       )
       .subscribe((data) => {
-        this.pageTitle = data['title'] || 'Dashboard';
+        this.routeTitle = data['title'] || 'Dashboard';
       });
   }
 

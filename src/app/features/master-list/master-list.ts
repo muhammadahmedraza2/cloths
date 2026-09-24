@@ -1,13 +1,14 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import * as XLSX from 'xlsx';
 import { MasterDataService } from '../../core/services/master-data.service';
 import { Router } from '@angular/router';
 import { FormDefinitionApi, MasterRecordApi } from '../../core/models/master-record.model';
 import { CartService } from '../../core/services/Cart.Service';
 import { AuthService } from '../../core/services/auth.service';
+import { PageTitleService } from '../../core/services/page-title.service';
+import { WishlistService } from '../../core/services/wishlist.service';
 
 type FilterMode = 'both' | 'authorized' | 'unauthorized';
 
@@ -17,13 +18,19 @@ type FilterMode = 'both' | 'authorized' | 'unauthorized';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './master-list.html',
 })
-export class MasterListComponent implements OnInit {
+export class MasterListComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
 
   formId!: number;
   config?: FormDefinitionApi;
   records: MasterRecordApi[] = [];
-  loadError = '';
+  configError = '';
+  recordsError = '';
+
+  // Add to cart / wishlist ke baad chhota message
+  notice = '';
+  noticeType: 'success' | 'danger' = 'success';
+  private noticeTimer?: ReturnType<typeof setTimeout>;
 
   // Filter/search bar — Reactive Form (no two-way binding)
   filterForm = this.fb.nonNullable.group({
@@ -44,8 +51,14 @@ export class MasterListComponent implements OnInit {
     private masterData: MasterDataService,
     private cart: CartService,
     private router: Router,
-    private auth: AuthService
+    private auth: AuthService,
+    private pageTitle: PageTitleService,
+    private wishlist: WishlistService
   ) {}
+
+  get loadError(): string {
+    return this.configError || this.recordsError;
+  }
 
   /** Add/Edit/Delete/Authorize/Export sirf Admin role ke liye. Normal user sirf browse + purchase kar sakta hai. */
   get isAdmin(): boolean {
@@ -61,31 +74,64 @@ export class MasterListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.wishlist.load();
+
     this.route.paramMap.subscribe((params) => {
       this.formId = Number(params.get('formId'));
-      this.filterForm.reset({ filterMode: 'both', searchTerm: '', pageSize: 10 });
+
+      // Purane form ka data/title naye form par nazar na aaye
+      this.config = undefined;
+      this.records = [];
+      this.configError = '';
+      this.recordsError = '';
+      this.pageTitle.clear();
+
+      // Normal user ko sirf Authorized (bikne wale) products dikhte hain
+      this.filterForm.reset({
+        filterMode: this.isAdmin ? 'both' : 'authorized',
+        searchTerm: '',
+        pageSize: 10,
+      });
       this.currentPage = 1;
       this.loadConfig();
       this.refresh();
     });
   }
 
+  ngOnDestroy(): void {
+    this.pageTitle.clear();
+    clearTimeout(this.noticeTimer);
+  }
+
   loadConfig(): void {
-    this.masterData.getFormDefinition(this.formId).subscribe({
-      next: (cfg) => (this.config = cfg),
-      error: () => (this.loadError = 'Could not load form definition.'),
+    const requestedFormId = this.formId;
+    this.masterData.getFormDefinition(requestedFormId).subscribe({
+      next: (cfg) => {
+        if (requestedFormId !== this.formId) return; // user tab badal chuka hai
+        this.config = cfg;
+        this.pageTitle.set(cfg.title);
+      },
+      error: () => {
+        if (requestedFormId !== this.formId) return;
+        this.configError = 'Could not load this form. It may not exist or you may not have access.';
+      },
     });
   }
 
   refresh(): void {
+    const requestedFormId = this.formId;
     const { filterMode, searchTerm } = this.filterForm.getRawValue();
     const statusParam = filterMode === 'both' ? undefined : filterMode;
-    this.masterData.getRecords(this.formId, statusParam, searchTerm || undefined).subscribe({
+    this.masterData.getRecords(requestedFormId, statusParam, searchTerm || undefined).subscribe({
       next: (records) => {
+        if (requestedFormId !== this.formId) return;
         this.records = records;
-        this.loadError = '';
+        this.recordsError = '';
       },
-      error: () => (this.loadError = 'Could not load records. Please check your connection.'),
+      error: () => {
+        if (requestedFormId !== this.formId) return;
+        this.recordsError = 'Could not load records. Please check your connection.';
+      },
     });
   }
 
@@ -200,14 +246,112 @@ export class MasterListComponent implements OnInit {
     });
   }
 
+<<<<<<< HEAD
   /** Existing ERP master rows remain browse-only; shopping uses the dedicated Shop screen. */
   onImageClick(record: MasterRecordApi, evt: Event): void {
     evt.stopPropagation();
     this.router.navigate(['/app/shop']);
+=======
+  // ------------------------- Shop (cart / wishlist) -------------------------
+
+  /** Record mein valid price ho to woh "product" hai (Product Setup jaisi forms). */
+  isShoppable(record: MasterRecordApi): boolean {
+    const price = record.fields['price'];
+    return price !== undefined && price !== null && price !== '' && !isNaN(Number(price));
+>>>>>>> 5149b2c6453205bb16ba4ac8b50d65beef032793
   }
 
-  exportToExcel(): void {
+  /** User sirf Authorized aur open (closed != Y) product khareed sakta hai. */
+  canBuy(record: MasterRecordApi): boolean {
+    if (!this.isShoppable(record)) return false;
+    return this.isAdmin || (record.status === 'Authorized' && record.closed !== 'Y');
+  }
+
+  get showShopActions(): boolean {
+    return this.records.some((r) => this.isShoppable(r));
+  }
+
+  get showImageColumn(): boolean {
+    return this.showShopActions || this.records.some((r) => !!r.fields['imageUrl']);
+  }
+
+  /** Table ke "No records" row ke liye columns ki ginti. */
+  get colSpan(): number {
+    const adminColumns = this.isAdmin ? 4 : 0; // Select, Status, Closed, actions
+    return (
+      (this.config?.columns.length ?? 0) +
+      (this.showImageColumn ? 1 : 0) +
+      (this.showShopActions ? 1 : 0) +
+      adminColumns
+    );
+  }
+
+  private productName(record: MasterRecordApi): string {
+    return record.fields['name'] || record.fields['code'] || 'Item';
+  }
+
+  addToCart(record: MasterRecordApi, goToCart: boolean, evt?: Event): void {
+    evt?.stopPropagation();
+    if (!this.canBuy(record)) return;
+
+    this.cart
+      .addToCart({
+        productId: record.id,
+        name: this.productName(record),
+        imageUrl: record.fields['imageUrl'] || undefined,
+        price: Number(record.fields['price']),
+      })
+      .subscribe({
+        next: () => {
+          if (goToCart) {
+            this.router.navigate(['/app/cart']);
+          } else {
+            this.showNotice(`${this.productName(record)} added to your cart.`, 'success');
+          }
+        },
+        error: () => this.showNotice('Could not add to cart. Please try again.', 'danger'),
+      });
+  }
+
+  /** Product ki image par click = cart mein daalo aur cart page kholo. */
+  onImageClick(record: MasterRecordApi, evt: Event): void {
+    this.addToCart(record, true, evt);
+  }
+
+  isWished(record: MasterRecordApi): boolean {
+    return this.wishlist.has(record.id);
+  }
+
+  toggleWish(record: MasterRecordApi, evt: Event): void {
+    evt.stopPropagation();
+    if (!this.isShoppable(record)) return;
+
+    const wasWished = this.isWished(record);
+    this.wishlist.toggle({
+      productId: record.id,
+      name: this.productName(record),
+      imageUrl: record.fields['imageUrl'] || undefined,
+      price: Number(record.fields['price']),
+    });
+    this.showNotice(
+      wasWished
+        ? `${this.productName(record)} removed from your wishlist.`
+        : `${this.productName(record)} saved to your wishlist.`,
+      'success'
+    );
+  }
+
+  private showNotice(message: string, type: 'success' | 'danger'): void {
+    this.notice = message;
+    this.noticeType = type;
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = setTimeout(() => (this.notice = ''), 2500);
+  }
+
+  /** xlsx library bhaari hai, is liye sirf export dabane par load hoti hai (app jaldi khulti hai). */
+  async exportToExcel(): Promise<void> {
     if (!this.config || !this.isAdmin) return;
+    const XLSX = await import('xlsx');
     const data = this.records.map((r) => {
       const row: Record<string, any> = {};
       this.config!.columns.forEach((c) => (row[c.label] = r.fields[c.key]));
