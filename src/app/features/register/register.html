@@ -1,0 +1,18 @@
+<div class="login-wrap d-flex align-items-center justify-content-center">
+  <div class="login-card" style="max-width:460px">
+    <div class="text-center mb-4"><div class="login-logo mb-2"><i class="bi bi-bag-heart-fill"></i><span class="fw-bold ms-1">Clothify</span></div><h5>Create Account</h5><small class="text-muted">Customer registration</small></div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      @if(error){<div class="alert alert-danger py-2 small">{{error}}</div>}
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Full Name</label><input class="form-control" formControlName="fullName"><div class="text-danger small" *ngIf="f.fullName.invalid && f.fullName.touched">Required.</div></div>
+        <div class="col-md-6"><label class="form-label">Username</label><input class="form-control" formControlName="username"></div>
+        <div class="col-md-6"><label class="form-label">Email</label><input class="form-control" formControlName="email"></div>
+        <div class="col-md-6"><label class="form-label">Phone</label><input class="form-control" formControlName="phoneNumber"></div>
+        <div class="col-md-6"><label class="form-label">Password</label><input type="password" class="form-control" formControlName="password"></div>
+        <div class="col-md-6"><label class="form-label">Confirm Password</label><input type="password" class="form-control" formControlName="confirmPassword"></div>
+      </div>
+      <button class="btn btn-primary-dark w-100 mt-4" [disabled]="submitting">Create Account</button>
+      <button type="button" class="btn btn-link w-100 mt-2" (click)="goLogin()">Already have an account? Sign in</button>
+    </form>
+  </div>
+</div>

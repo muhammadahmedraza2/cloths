@@ -1,0 +1,398 @@
+:root {
+  --crpl-primary: #1a4f8b;
+  --crpl-primary-dark: #123a68;
+  --crpl-header-bg: #1d5faa;
+  --crpl-sidebar-active: #eaf2fb;
+  --crpl-border: #e3e8ef;
+  --crpl-bg: #f4f6f9;
+  --crpl-text: #2b2f36;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--crpl-bg);
+  color: var(--crpl-text);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ---------- App Shell ---------- */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-content {
+  padding: 24px;
+  flex: 1;
+}
+
+.page-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+.app-header {
+  height: 60px;
+  background: var(--crpl-header-bg);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Sidebar ---------- */
+.app-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: #fff;
+  border-right: 1px solid var(--crpl-border);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+.sidebar-search input {
+  font-size: 0.85rem;
+}
+
+.sidebar-nav {
+  padding-bottom: 24px;
+}
+
+.nav-link-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  color: var(--crpl-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-link-item i.bi {
+  font-size: 1rem;
+  color: #8a94a6;
+  width: 18px;
+}
+
+.nav-link-item:hover {
+  background: #f5f8fc;
+}
+
+.nav-link-item.active {
+  background: var(--crpl-sidebar-active);
+  border-right: 3px solid var(--crpl-header-bg);
+  color: var(--crpl-header-bg);
+  font-weight: 600;
+}
+
+.chevron {
+  font-size: 0.75rem !important;
+}
+
+.nav-children {
+  display: flex;
+  flex-direction: column;
+  background: #fafbfd;
+}
+
+.nav-child-link {
+  padding: 8px 18px 8px 46px;
+  font-size: 0.84rem;
+  color: #4a5568;
+  text-decoration: none;
+}
+
+.nav-child-link:hover {
+  background: #f0f4f9;
+}
+
+.nav-child-link.active {
+  color: var(--crpl-header-bg);
+  font-weight: 600;
+  background: var(--crpl-sidebar-active);
+  border-right: 3px solid var(--crpl-header-bg);
+}
+
+/* ---------- Cards / Table ---------- */
+.erp-card {
+  border: 1px solid var(--crpl-border);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.erp-table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+  border-bottom: 2px solid var(--crpl-border);
+  white-space: nowrap;
+}
+
+.erp-table td {
+  font-size: 0.88rem;
+  vertical-align: middle;
+}
+
+.btn-primary-dark {
+  background: var(--crpl-primary-dark);
+  border-color: var(--crpl-primary-dark);
+  color: #fff;
+}
+
+.btn-primary-dark:hover {
+  background: #0d2c50;
+  border-color: #0d2c50;
+  color: #fff;
+}
+
+.search-box {
+  max-width: 320px;
+}
+
+/* ---------- Dashboard ---------- */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--crpl-header-bg), var(--crpl-primary-dark));
+  color: #fff;
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.welcome-banner p {
+  color: #e4edf8;
+}
+
+.text-mute {
+  color: white !important;
+}
+
+.dash-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--crpl-border);
+  border-radius: 12px;
+  padding: 24px 12px;
+  height: 100%;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  color: var(--crpl-text);
+}
+
+.dash-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dash-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+/* image */
+
+.product-thumb-click {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.product-thumb-click:hover {
+  transform: scale(1.15);
+}
+
+/* image */
+
+.dash-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ---------- Modal (custom, bootstrap-styled) ---------- */
+.erp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 1040;
+}
+
+.erp-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 10px;
+  width: 92%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  z-index: 1050;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.erp-modal-header,
+.erp-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+
+.erp-modal-header {
+  border-bottom: 1px solid var(--crpl-border);
+}
+
+.erp-modal-footer {
+  border-top: 1px solid var(--crpl-border);
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.erp-modal-body {
+  padding: 20px;
+}
+
+/* ---------- Login ---------- */
+.login-wrap {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--crpl-header-bg), var(--crpl-primary-dark));
+  padding: 20px;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.login-logo {
+  font-size: 1.6rem;
+  color: var(--crpl-header-bg);
+}
+
+/* ---------- Responsive sidebar ---------- */
+@media (max-width: 991px) {
+  .app-sidebar {
+    position: fixed;
+    left: -280px;
+    transition: left 0.2s ease;
+    z-index: 30;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+  .app-sidebar.app-sidebar-open {
+    left: 0;
+  }
+}
+
+/* ---------- Notification bell / panel ---------- */
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  font-size: 0.6rem;
+  padding: 3px 5px;
+}
+.notif-panel {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  width: 320px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  z-index: 50;
+  color: #212529;
+}
+.notif-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+}
+.notif-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f2f2f2;
+}
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+/* ---------- Dashboard carousel (customer view) ---------- */
+.shop-carousel {
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.shop-carousel .carousel-item img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+}
+.shop-carousel .carousel-caption {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  bottom: 30px;
+}
+@media (max-width: 767px) {
+  .shop-carousel .carousel-item img {
+    height: 180px;
+  }
+}
+.shop-category-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease;
+}
+.shop-category-card:hover {
+  transform: translateY(-3px);
+}
+.shop-category-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+.shop-category-card .shop-category-label {
+  padding: 10px 12px;
+  font-weight: 600;
+}

@@ -1,0 +1,59 @@
+<div class="page-wrap">
+  <h4 class="mb-3">Shopping Cart</h4>
+
+  @if (cart.summary().items.length === 0) {
+    <div class="card erp-card">
+      <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
+        Your cart is empty.
+      </div>
+    </div>
+  } @else {
+    <div class="card erp-card">
+      <div class="card-body">
+        <table class="table erp-table align-middle">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of cart.summary().items; track item.id) {
+              <tr>
+                <td class="d-flex align-items-center gap-2">
+                  @if (item.imageUrl) {
+                    <img [src]="item.imageUrl" class="product-thumb">
+                  }
+                  {{ item.name }}
+                </td>
+                <td>Rs. {{ item.price }}</td>
+                <td style="max-width:90px">
+                  <input type="number" min="1" class="form-control form-control-sm"
+                         [value]="item.qty"
+                         (change)="updateQty(item.id, $any($event.target).valueAsNumber)">
+                </td>
+                <td>Rs. {{ item.qty * item.price }}</td>
+                <td>
+                  <button class="btn btn-link text-danger p-0" (click)="removeItem(item.id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="d-flex justify-content-end align-items-center gap-3 mt-3">
+          <span class="fw-semibold fs-5">Total: Rs. {{ cart.summary().totalAmount }}</span>
+          <button class="btn btn-primary-dark" (click)="proceed()">
+            Proceed <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

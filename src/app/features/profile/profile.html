@@ -1,0 +1,5 @@
+<div class="page-wrap"><h4>My Profile</h4>@if(message){<div class="alert alert-success">{{message}}</div>}@if(error){<div class="alert alert-danger">{{error}}</div>}
+<div class="card erp-card"><div class="card-body"><form [formGroup]="form" (ngSubmit)="save()" class="row g-3">
+<div class="col-md-6"><label class="form-label">Username</label><input class="form-control" formControlName="username" readonly></div><div class="col-md-6"><label class="form-label">Role</label><input class="form-control" formControlName="role" readonly></div>
+<div class="col-md-6"><label class="form-label">Full Name</label><input class="form-control" formControlName="fullName"></div><div class="col-md-6"><label class="form-label">Email</label><input class="form-control" formControlName="email"></div><div class="col-md-6"><label class="form-label">Phone</label><input class="form-control" formControlName="phoneNumber"></div>
+<div class="col-12"><button class="btn btn-primary-dark">Save Profile</button></div></form></div></div></div>

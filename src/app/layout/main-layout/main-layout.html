@@ -1,0 +1,10 @@
+<div class="app-shell">
+  <!-- <app-sidebar [open]="sidebarOpen" (closeSidebar)="sidebarOpen = false"></app-sidebar> -->
+   <app-sidebar [open]="sidebarOpen" (closeSidebar)="sidebarOpen = false"></app-sidebar>
+  <div class="app-main">
+    <app-header [pageTitle]="pageTitle" (toggleSidebar)="toggleSidebar()"></app-header>
+    <main class="app-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<div class="sidebar-backdrop" [class.sidebar-backdrop-show]="open" (click)="onBackdropClick()"></div>
+
+<aside class="app-sidebar" [class.app-sidebar-open]="open">
+  <div class="sidebar-search p-3 d-flex align-items-center gap-2">
+    <div class="input-group input-group-sm">
+      <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+      <input type="text" class="form-control border-start-0" placeholder="Search by Interface" />
+    </div>
+    <button type="button" class="btn-close sidebar-close-btn d-lg-none" aria-label="Close"
+      (click)="onBackdropClick()"></button>
+  </div>
+
+  <nav class="sidebar-nav">
+    @if (menu$ | async; as menu) {
+      @if (menu.length === 0) {
+        <div class="text-center text-muted small py-4">No menu assigned</div>
+      }
+
+      @for (item of menu; track item.id) {
+        @if (item.children && item.children.length) {
+          <div class="nav-group">
+            <button type="button" class="nav-link-item" (click)="toggle(item.label)">
+              <i class="bi" [ngClass]="iconClass(item.icon)"></i>
+              <span class="nav-label">{{ item.label }}</span>
+              <i class="bi ms-auto chevron" [class.bi-chevron-down]="!expanded[item.label]"
+                [class.bi-chevron-up]="expanded[item.label]"></i>
+            </button>
+
+            @if (expanded[item.label]) {
+              <div class="nav-children">
+                @for (child of item.children; track child.id) {
+                  <a class="nav-child-link" [routerLink]="child.route" routerLinkActive="active"
+                    (click)="onLinkClick()">
+                    {{ child.label }}
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <a class="nav-link-item" [routerLink]="item.route" routerLinkActive="active" (click)="onLinkClick()">
+            <i class="bi" [ngClass]="iconClass(item.icon)"></i>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        }
+      }
+    } @else {
+      <div class="text-center text-muted small py-4">
+        <span class="spinner-border spinner-border-sm me-2"></span> Loading menu...
+      </div>
+    }
+  </nav>
+</aside>

@@ -1,0 +1,173 @@
+@if (config) {
+<div class="page-wrap">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0">{{ config.title }}</h4>
+      <small class="text-muted">{{ config.breadcrumb }}</small>
+    </div>
+    @if (isAdmin) {
+      <button class="btn btn-primary-dark" (click)="openAddNew()">
+        <i class="bi bi-plus-lg me-1"></i> Add New
+      </button>
+    }
+  </div>
+
+  @if (loadError) {
+    <div class="alert alert-danger">{{ loadError }}</div>
+  }
+
+  <div class="card erp-card">
+    <div class="card-body">
+      <form [formGroup]="filterForm" class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" formControlName="filterMode" id="fBoth" value="both" (change)="onFilterChange()">
+            <label class="form-check-label" for="fBoth">Both</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" formControlName="filterMode" id="fAuth" value="authorized" (change)="onFilterChange()">
+            <label class="form-check-label" for="fAuth">Authorized</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" formControlName="filterMode" id="fUnauth" value="unauthorized" (change)="onFilterChange()">
+            <label class="form-check-label" for="fUnauth">Unauthorized</label>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end flex-wrap">
+          <div class="input-group search-box">
+            <input type="text" class="form-control" placeholder="Search..." formControlName="searchTerm" (keyup.enter)="onSearch()">
+            <button type="button" class="btn btn-primary-dark" (click)="onSearch()"><i class="bi bi-search me-1"></i>Search</button>
+          </div>
+          @if (isAdmin) {
+            <button type="button" class="btn btn-primary-dark" (click)="exportToExcel()">
+              <i class="bi bi-download me-1"></i> Export to Excel
+            </button>
+          }
+        </div>
+      </form>
+
+      <div class="table-responsive">
+        <table class="table erp-table align-middle">
+          <thead>
+            <tr>
+              @if (isAdmin) {
+                <th>Select</th>
+              }
+              <th>Image</th>
+              @for (col of config.columns; track col.key) {
+                <th>{{ col.label }}</th>
+              }
+              <th>Status</th>
+              <th>Closed</th>
+              @if (isAdmin) {
+                <th></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of pagedRecords; track row.id) {
+              <tr>
+                @if (isAdmin) {
+                  <td>
+                    <button class="btn btn-primary-dark btn-sm" (click)="selectRow(row)">Select</button>
+                  </td>
+                }
+                <td>
+                  @if (row.fields['imageUrl']) {
+                    <img [src]="row.fields['imageUrl']" class="product-thumb product-thumb-click" (click)="onImageClick(row, $event)" alt="">
+                  } @else {
+                    <div class="product-thumb-placeholder product-thumb-click" (click)="onImageClick(row, $event)">
+                      <i class="bi bi-image"></i>
+                    </div>
+                  }
+                </td>
+                @for (col of config.columns; track col.key) {
+                  <td>{{ row.fields[col.key] }}</td>
+                }
+                <td>
+                  <span class="badge" [class.text-bg-success]="row.status === 'Authorized'" [class.text-bg-warning]="row.status === 'UnAuthorize'">
+                    {{ row.status }}
+                  </span>
+                </td>
+                <td>{{ row.closed }}</td>
+                @if (isAdmin) {
+                  <td class="text-end">
+                    @if (row.status === 'UnAuthorize') {
+                      <button class="btn btn-link text-success p-0 me-3" title="Authorize" (click)="authorizeRow(row, $event)">
+                        <i class="bi bi-check-circle"></i>
+                      </button>
+                    }
+                    <button class="btn btn-link text-danger p-0" title="Delete" (click)="deleteRow(row, $event)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+            @empty {
+              <tr>
+                <td [attr.colspan]="config.columns.length + (isAdmin ? 5 : 3)" class="text-center text-muted py-4">
+                  No records found.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+        <span class="text-muted small">{{ rangeLabel }}</span>
+        <form [formGroup]="filterForm" class="d-flex align-items-center gap-2">
+          <span class="text-muted small">Rows per page:</span>
+          <select class="form-select form-select-sm w-auto" formControlName="pageSize" (change)="onPageSizeChange()">
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="prevPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span class="text-muted small">{{ currentPage }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="nextPage()" [disabled]="currentPage === totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (showModal) {
+  <div class="erp-modal-backdrop" (click)="closeModal()"></div>
+  <div class="erp-modal">
+    <form [formGroup]="recordForm" (ngSubmit)="saveRecord()">
+      <div class="erp-modal-header">
+        <h5 class="mb-0">{{ isEditing ? 'Edit' : 'Add New' }} - {{ config.title }}</h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <div class="erp-modal-body">
+        <div class="row g-3">
+          @for (col of config.columns; track col.key) {
+            <div class="col-md-6">
+              <label class="form-label">{{ col.label }}</label>
+              <input type="text" class="form-control" [formControlName]="col.key">
+            </div>
+          }
+          <div class="col-md-6">
+            <label class="form-label">Closed</label>
+            <select class="form-select" formControlName="closed">
+              <option value="N">N</option>
+              <option value="Y">Y</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="erp-modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary-dark">Save</button>
+      </div>
+    </form>
+  </div>
+}
+}

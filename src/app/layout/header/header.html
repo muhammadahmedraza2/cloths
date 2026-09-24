@@ -1,0 +1,56 @@
+<header class="app-header d-flex align-items-center justify-content-between px-3">
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-link text-white d-lg-none p-0 me-2" (click)="toggleSidebar.emit()">
+      <i class="bi bi-list fs-3"></i>
+    </button>
+    <button class="btn btn-link text-white p-0 me-2" (click)="goHome()" title="Back">
+      <i class="bi bi-arrow-left fs-5"></i>
+    </button>
+    <span class="fw-semibold fs-5">{{ pageTitle }}</span>
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    @if (isAdmin) {
+      <div class="position-relative">
+        <button class="btn btn-link text-white p-0 position-relative" (click)="toggleNotifPanel()" title="Notifications">
+          <i class="bi bi-bell fs-5"></i>
+          @if (notifications.unreadCount() > 0) {
+            <span class="badge rounded-pill bg-danger notif-badge">{{ notifications.unreadCount() }}</span>
+          }
+        </button>
+        @if (showNotifPanel) {
+          <div class="notif-panel shadow">
+            <div class="notif-panel-header">
+              <span class="fw-semibold">Notifications</span>
+              <button class="btn btn-link btn-sm p-0" (click)="notifications.clear()">Clear</button>
+            </div>
+            @if (notifications.items().length === 0) {
+              <div class="text-muted small text-center py-4">Koi notification nahi hai.</div>
+            } @else {
+              @for (n of notifications.items(); track n.id) {
+                <div class="notif-item">
+                  <div class="fw-semibold small">{{ n.title }}</div>
+                  <div class="small text-muted">{{ n.message }}</div>
+                  <div class="small text-muted">{{ n.createdAt | date: 'short' }}</div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <i class="bi bi-bell fs-5" title="Notifications"></i>
+    }
+    <i class="bi bi-star fs-5" title="Favorites"></i>
+    <button class="btn btn-link text-white p-0" (click)="goHome()" title="Home">
+      <i class="bi bi-house-door fs-5"></i>
+    </button>
+    @if (currentUser) {
+      <span class="small d-none d-md-inline">{{ currentUser.fullName }}
+        <span class="badge text-bg-light text-dark ms-1">{{ currentUser.role }}</span>
+      </span>
+    }
+    <button class="btn btn-link text-white p-0" (click)="logout()" title="Logout">
+      <i class="bi bi-power fs-5"></i>
+    </button>
+  </div>
+</header>
