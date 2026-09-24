@@ -12,6 +12,11 @@ export class CartService {
   private summarySignal = signal<CartSummaryApi>({ items: [], totalQty: 0, totalAmount: 0 });
   readonly summary = this.summarySignal.asReadonly();
 
+  /** Logout/login par purane user ka cart memory se saaf karta hai. */
+  clear(): void {
+    this.summarySignal.set({ items: [], totalQty: 0, totalAmount: 0 });
+  }
+
   loadCart(): Observable<CartSummaryApi> {
     return this.http.get<CartSummaryApi>(`${this.apiUrl}/cart`).pipe(
       tap((summary) => this.summarySignal.set(summary))

@@ -4,10 +4,12 @@ export interface MenuFormApi {
 }
 
 export interface MenuNodeApi {
+  id: number;
   label: string;
   icon: string | null;
   route: string | null;
-  children: MenuFormApi[] | null;
+  formId: number | null;
+  children: MenuNodeApi[];
 }
 
 // ✅ Add this — used by menu.config.ts

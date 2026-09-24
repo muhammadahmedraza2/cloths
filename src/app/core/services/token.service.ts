@@ -1,48 +1,60 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 
-const TOKEN_KEY = 'clothing-erp-token';
-const USER_KEY = 'clothing-erp-user';
+const ROLE_CLAIM =
+  'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
 
-export interface StoredUser {
-  username: string;
-  fullName: string;
-  role: string;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class TokenService {
-  private userSignal = signal<StoredUser | null>(this.readUser());
-  readonly currentUser = this.userSignal.asReadonly();
 
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+  private readonly tokenKey = 'accessToken';
+
+  setToken(token: string): void {
+    localStorage.setItem(this.tokenKey, token);
   }
 
-  setSession(token: string, user: StoredUser): void {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    this.userSignal.set(user);
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
   }
 
   clearSession(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    this.userSignal.set(null);
+    localStorage.removeItem(this.tokenKey);
   }
 
+  // Token maujood hai aur expire nahi hua
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const payload = this.getPayload();
+    if (!payload) {
+      return false;
+    }
+    // exp seconds mein hota hai
+    if (payload['exp'] && payload['exp'] * 1000 < Date.now()) {
+      return false;
+    }
+    return true;
   }
 
-  /** true jab logged-in user ka role 'Admin' ho (case-insensitive). */
+  // Token ke andar se role padhta hai
+  getRole(): string | null {
+    const payload = this.getPayload();
+    const role = payload?.[ROLE_CLAIM] ?? payload?.['role'];
+    return typeof role === 'string' ? role : null;
+  }
+
   isAdmin(): boolean {
-    return (this.userSignal()?.role || '').toLowerCase() === 'admin';
+    const role = this.getRole()?.toLowerCase();
+    return role === 'administrator' || role === 'admin';
   }
 
-  private readUser(): StoredUser | null {
+  private getPayload(): Record<string, any> | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
     try {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? (JSON.parse(raw) as StoredUser) : null;
+      const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(base64));
     } catch {
       return null;
     }

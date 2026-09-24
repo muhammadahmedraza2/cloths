@@ -63,7 +63,7 @@
     </div>
 
     <div class="row g-3">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <a class="dash-card text-decoration-none" [routerLink]="['/app/cart']">
           <div class="dash-icon bg-success-subtle text-success">
             <i class="bi bi-cart-check"></i>
@@ -71,7 +71,15 @@
           <div class="dash-label">My Cart</div>
         </a>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
+        <a class="dash-card text-decoration-none" [routerLink]="['/app/wishlist']">
+          <div class="dash-icon bg-danger-subtle text-danger">
+            <i class="bi bi-heart"></i>
+          </div>
+          <div class="dash-label">My Wishlist</div>
+        </a>
+      </div>
+      <div class="col-md-4">
         <a class="dash-card text-decoration-none" [routerLink]="['/app/help']">
           <div class="dash-icon bg-info-subtle text-info">
             <i class="bi bi-question-circle"></i>

@@ -396,3 +396,107 @@ body {
   padding: 10px 12px;
   font-weight: 600;
 }
+
+/* ---------- Product thumbnails (master-list, cart, wishlist) ---------- */
+.product-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--crpl-border);
+  flex-shrink: 0;
+}
+.product-thumb-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #eef2f7;
+  color: #8a94a6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+/* Sirf khareedne wale products par click hover effect; baaki par normal cursor */
+.product-thumb-click {
+  cursor: pointer;
+}
+
+/* ---------- Checkout ---------- */
+.checkout-item-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.checkout-item-thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef2f7;
+  color: #8a94a6;
+  font-size: 1.3rem;
+}
+.payment-method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+.payment-method-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: #fff;
+  border: 1px solid var(--crpl-border);
+  border-radius: 10px;
+  color: var(--crpl-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.payment-method-card i {
+  font-size: 1.5rem;
+  color: #8a94a6;
+}
+.payment-method-card:hover {
+  border-color: var(--crpl-header-bg);
+}
+.payment-method-card.selected {
+  border-color: var(--crpl-header-bg);
+  background: var(--crpl-sidebar-active);
+  color: var(--crpl-header-bg);
+  font-weight: 600;
+}
+.payment-method-card.selected i {
+  color: var(--crpl-header-bg);
+}
+.cash-note {
+  background: #f1f7ee;
+  border: 1px solid #d5e8cc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  color: #3d5a2e;
+}
+.text-primary-em {
+  color: var(--crpl-header-bg);
+}
+
+/* ---------- Mobile sidebar backdrop ---------- */
+.sidebar-backdrop {
+  display: none;
+}
+@media (max-width: 991px) {
+  .sidebar-backdrop.sidebar-backdrop-show {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 25;
+  }
+}

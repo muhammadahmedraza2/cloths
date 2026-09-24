@@ -5,8 +5,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  expiresAt: string;
   username: string;
   fullName: string;
   role: string;
-  expiresAt: string;
 }

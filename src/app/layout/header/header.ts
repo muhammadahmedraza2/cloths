@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { MenuService } from '../../core/services/menu.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -18,6 +18,8 @@ export class HeaderComponent {
   notifications = inject(NotificationService);
   showNotifPanel = false;
 
+  private location = inject(Location);
+
   constructor(private router: Router, private auth: AuthService, private menuService: MenuService) {}
 
   get currentUser() {
@@ -30,6 +32,15 @@ export class HeaderComponent {
 
   goHome(): void {
     this.router.navigate(['/app/dashboard']);
+  }
+
+  /** Pichla page; agar history hi na ho (naya tab) to dashboard. */
+  goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.goHome();
+    }
   }
 
   toggleNotifPanel(): void {

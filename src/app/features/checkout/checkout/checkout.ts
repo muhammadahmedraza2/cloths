@@ -42,7 +42,7 @@ export class CheckoutComponent implements OnInit {
     bankName: [''],
     accountNumber: [''],
     transactionReference: [''],
-    amountPaid: this.fb.control<number | null>(null),
+    amountPaid: this.fb.control<number | null>(null, [Validators.min(0)]),
   });
 
   get f() {
@@ -50,6 +50,17 @@ export class CheckoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Page refresh par cart memory se ud jata hai, is liye dobara load karo.
+    // Cart khali ho to checkout ka faida nahi, cart page par bhej do.
+    this.cart.loadCart().subscribe({
+      next: (summary) => {
+        if (summary.items.length === 0 && !this.orderPlaced) {
+          this.router.navigate(['/app/cart']);
+        }
+      },
+      error: () => (this.errorMsg = 'Could not load your cart. Please try again.'),
+    });
+
     // Pull the bank list live from Bank Setup (Setup Management) — no hardcoding.
     this.masterData.getRecords(BANK_SETUP_FORM_ID, 'authorized').subscribe({
       next: (records) => {
@@ -80,6 +91,10 @@ export class CheckoutComponent implements OnInit {
   placeOrder(): void {
     const { paymentMethod, bankName, accountNumber, transactionReference, amountPaid } = this.form.getRawValue();
 
+    if (amountPaid !== null && amountPaid < 0) {
+      this.errorMsg = 'Amount paid cannot be negative.';
+      return;
+    }
     if (this.isBankTransfer && !bankName) {
       this.errorMsg = 'Please select a bank.';
       return;

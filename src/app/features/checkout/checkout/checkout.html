@@ -111,7 +111,7 @@
                       } @else if (banks.length > 0) {
                         <select class="form-select" formControlName="bankName">
                           <option value="" disabled>Choose your bank</option>
-                          @for (b of banks; track b.code) {
+                          @for (b of banks; track $index) {
                             <option [value]="b.name">{{ b.name }}</option>
                           }
                         </select>
@@ -130,7 +130,7 @@
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Amount Paid (Rs.)</label>
-                    <input type="number" class="form-control" formControlName="amountPaid" [placeholder]="cart.summary().totalAmount.toString()">
+                    <input type="number" min="0" class="form-control" formControlName="amountPaid" [placeholder]="cart.summary().totalAmount.toString()">
                   </div>
                 </div>
               }
