@@ -26,6 +26,8 @@ export class LoginComponent {
     return this.form.controls;
   }
 
+  goRegister(): void { this.router.navigate(['/register']); }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();

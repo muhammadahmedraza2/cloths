@@ -200,18 +200,10 @@ export class MasterListComponent implements OnInit {
     });
   }
 
-  /** Clicking a product image/placeholder adds it to the cart and jumps there (Admin aur User dono kar sakte hain). */
+  /** Existing ERP master rows remain browse-only; shopping uses the dedicated Shop screen. */
   onImageClick(record: MasterRecordApi, evt: Event): void {
     evt.stopPropagation();
-    this.cart.addToCart({
-      productId: record.id,
-      name: record.fields['name'] || record.fields['code'] || 'Item',
-      imageUrl: record.fields['imageUrl'] || undefined,
-      price: Number(record.fields['price']) || 0,
-    }).subscribe({
-      next: () => this.router.navigate(['/app/cart']),
-      error: () => alert('Could not add to cart.'),
-    });
+    this.router.navigate(['/app/shop']);
   }
 
   exportToExcel(): void {

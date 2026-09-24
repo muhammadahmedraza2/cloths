@@ -1,50 +1,31 @@
-import { Injectable, signal } from '@angular/core';
-
-const TOKEN_KEY = 'clothing-erp-token';
-const USER_KEY = 'clothing-erp-user';
-
-export interface StoredUser {
-  username: string;
-  fullName: string;
-  role: string;
-}
+import { Injectable } from '@angular/core';
+const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
 
 @Injectable({ providedIn: 'root' })
 export class TokenService {
-  private userSignal = signal<StoredUser | null>(this.readUser());
-  readonly currentUser = this.userSignal.asReadonly();
-
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+  private readonly tokenKey = 'accessToken';
+  private readonly refreshKey = 'refreshToken';
+  setToken(token: string, refreshToken?: string): void {
+    localStorage.setItem(this.tokenKey, token);
+    if (refreshToken) localStorage.setItem(this.refreshKey, refreshToken);
   }
-
-  setSession(token: string, user: StoredUser): void {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    this.userSignal.set(user);
-  }
-
-  clearSession(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    this.userSignal.set(null);
-  }
-
+  getToken(): string | null { return localStorage.getItem(this.tokenKey); }
+  getRefreshToken(): string | null { return localStorage.getItem(this.refreshKey); }
+  clearSession(): void { localStorage.removeItem(this.tokenKey); localStorage.removeItem(this.refreshKey); }
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const payload = this.getPayload();
+    return !!payload && (!payload['exp'] || payload['exp'] * 1000 > Date.now());
   }
-
-  /** true jab logged-in user ka role 'Admin' ho (case-insensitive). */
-  isAdmin(): boolean {
-    return (this.userSignal()?.role || '').toLowerCase() === 'admin';
+  getRole(): string | null {
+    const p = this.getPayload(); const role = p?.[ROLE_CLAIM] ?? p?.['role'];
+    return typeof role === 'string' ? role : null;
   }
-
-  private readUser(): StoredUser | null {
+  isAdmin(): boolean { return (this.getRole() ?? '').toLowerCase() === 'admin'; }
+  private getPayload(): Record<string, any> | null {
+    const token = this.getToken(); if (!token) return null;
     try {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? (JSON.parse(raw) as StoredUser) : null;
-    } catch {
-      return null;
-    }
+      const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(b64));
+    } catch { return null; }
   }
 }
