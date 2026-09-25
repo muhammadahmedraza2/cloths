@@ -1,0 +1,26 @@
+<div class="text-center py-5 px-3">
+  <div class="error-code" [class.text-danger]="forbidden">{{ forbidden ? '403' : '404' }}</div>
+
+  <h4 class="mb-2">{{ forbidden ? 'Access denied' : 'Page not found' }}</h4>
+
+  <p class="text-muted mb-1">
+    @if (forbidden) {
+      You don't have permission to open this page.
+    } @else {
+      The page you are looking for doesn't exist or has been moved.
+    }
+  </p>
+
+  @if (requestedUrl) {
+    <p class="small text-muted mb-0"><code>{{ requestedUrl }}</code></p>
+  }
+
+  <div class="d-flex justify-content-center gap-2 flex-wrap mt-4">
+    <button type="button" class="btn btn-outline-secondary" (click)="goBack()">
+      <i class="bi bi-arrow-left me-1"></i> Go back
+    </button>
+    <a routerLink="/app/dashboard" class="btn btn-primary-dark">
+      <i class="bi bi-house me-1"></i> Dashboard
+    </a>
+  </div>
+</div>

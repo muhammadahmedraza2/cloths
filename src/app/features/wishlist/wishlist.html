@@ -1,6 +1,7 @@
 <div class="page-wrap">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
     <h4 class="mb-0">Wishlist</h4>
+
     <a routerLink="/app/cart" class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-cart3 me-1"></i> Go to cart
     </a>
@@ -9,6 +10,7 @@
   @if (message()) {
     <div class="alert alert-success py-2 small">{{ message() }}</div>
   }
+
   @if (errorMsg()) {
     <div class="alert alert-danger py-2 small">{{ errorMsg() }}</div>
   }
@@ -17,9 +19,13 @@
     <div class="card erp-card">
       <div class="card-body text-center text-muted py-5">
         <i class="bi bi-heart fs-1 d-block mb-2"></i>
+
         Nothing saved yet. Tap the heart on any product to keep it here.
+
         <div>
-          <a routerLink="/app/master/1102" class="btn btn-primary-dark btn-sm mt-3">Browse products</a>
+          <a routerLink="/app/shop" class="btn btn-primary-dark btn-sm mt-3">
+            Browse products
+          </a>
         </div>
       </div>
     </div>
@@ -35,6 +41,7 @@
                 <th></th>
               </tr>
             </thead>
+
             <tbody>
               @for (item of wishlist.items(); track item.productId) {
                 <tr>
@@ -43,17 +50,30 @@
                       @if (item.imageUrl) {
                         <img [src]="item.imageUrl" class="product-thumb" alt="">
                       } @else {
-                        <div class="product-thumb-placeholder"><i class="bi bi-image"></i></div>
+                        <div class="product-thumb-placeholder">
+                          <i class="bi bi-image"></i>
+                        </div>
                       }
+
                       {{ item.name }}
                     </div>
                   </td>
+
                   <td>Rs. {{ item.price | number }}</td>
+
                   <td class="text-end text-nowrap">
-                    <button type="button" class="btn btn-primary-dark btn-sm me-2" (click)="moveToCart(item)">
-                      <i class="bi bi-cart-plus me-1"></i> Move to cart
+                    <button
+                      type="button"
+                      class="btn btn-primary-dark btn-sm me-2"
+                      (click)="moveToCart(item)">
+                      <i class="bi bi-cart-plus me-1"></i>
+                      Move to cart
                     </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm" aria-label="Remove from wishlist"
+
+                    <button
+                      type="button"
+                      class="btn btn-outline-danger btn-sm"
+                      aria-label="Remove from wishlist"
                       (click)="remove(item)">
                       <i class="bi bi-trash"></i>
                     </button>

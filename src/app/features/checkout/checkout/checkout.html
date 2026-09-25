@@ -1,168 +1,231 @@
 <div class="page-wrap">
-<<<<<<< HEAD
-@if(order){<div class="card erp-card"><div class="card-body text-center py-5"><i class="bi bi-check-circle-fill text-success fs-1"></i><h4 class="mt-3">Order Placed Successfully</h4><p>Order No: <b>{{order.orderNumber}}</b></p><p>Invoice No: <b>{{order.invoiceNumber}}</b></p><p>Total: <b>Rs. {{order.finalAmount|number}}</b></p><p>Payment: <span class="badge text-bg-warning">{{order.paymentStatus}}</span></p><div class="d-flex justify-content-center gap-2"><button class="btn btn-primary-dark" (click)="print()"><i class="bi bi-printer me-1"></i>Print Invoice</button><button class="btn btn-outline-secondary" (click)="orders()">Order History</button></div></div></div>}
-@else{
-<h4 class="mb-3">Checkout</h4>@if(error){<div class="alert alert-danger">{{error}}</div>}
-<div class="row g-3"><div class="col-lg-7"><form [formGroup]="form" (ngSubmit)="placeOrder()">
-<div class="card erp-card mb-3"><div class="card-body"><h6>Shipping Address</h6>
-@if(addresses.length){<div class="mb-3"><select class="form-select" formControlName="shippingAddressId">@for(a of addresses;track a.id){<option [value]="a.id">{{a.addressLine}}, {{a.city}} {{a.isDefault?'(Default)':''}}</option>}</select></div>}
-<div class="row g-2"><div class="col-md-6"><input class="form-control" placeholder="Address line" formControlName="addressLine"></div><div class="col-md-6"><input class="form-control" placeholder="City" formControlName="city"></div><div class="col-md-4"><input class="form-control" placeholder="Area" formControlName="area"></div><div class="col-md-4"><input class="form-control" placeholder="Postal code" formControlName="postalCode"></div><div class="col-md-4"><button type="button" class="btn btn-outline-secondary w-100" (click)="saveAddress()">Save Address</button></div></div>
-</div></div>
-<div class="card erp-card"><div class="card-body"><h6>Payment Method</h6><div class="row g-2 mb-3"><div class="col-md-4"><label class="border rounded p-3 w-100"><input type="radio" formControlName="paymentMethod" [value]="PaymentMethod.CashOnDelivery" class="me-2">Cash on Delivery</label></div><div class="col-md-4"><label class="border rounded p-3 w-100"><input type="radio" formControlName="paymentMethod" [value]="PaymentMethod.Card" class="me-2">Card (Online)</label></div><div class="col-md-4"><label class="border rounded p-3 w-100"><input type="radio" formControlName="paymentMethod" [value]="PaymentMethod.OnlineBankTransfer" class="me-2">Bank Transfer</label></div></div>
-@if(bankTransfer){<div class="row g-3"><div class="col-md-6"><label class="form-label">Bank</label><input class="form-control" formControlName="bankName"></div><div class="col-md-6"><label class="form-label">Transaction Reference</label><input class="form-control" formControlName="transactionReference"></div><div class="col-12"><label class="form-label">Payment Proof</label><input type="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf" (change)="fileChanged($event)">@if(uploading){<small>Uploading...</small>}@if(proofName){<small class="text-success d-block mt-1">{{proofName}} uploaded.</small>}</div></div>}
-<div class="mt-3"><label class="form-label">Shipping Amount</label><input type="number" class="form-control" formControlName="shippingAmount"></div>
-<button class="btn btn-primary-dark w-100 mt-4" [disabled]="submitting||uploading">Place Order — Rs. {{cart.summary().totalAmount + f.shippingAmount.value|number}}</button>
-</div></div></form></div>
-<div class="col-lg-5"><div class="card erp-card"><div class="card-body"><h6>Order Summary</h6>@for(i of cart.summary().items;track i.id){<div class="d-flex justify-content-between border-bottom py-2"><span>{{i.productName}} × {{i.quantity}}</span><b>Rs. {{i.total|number}}</b></div>}<div class="d-flex justify-content-between fw-bold fs-5 mt-3"><span>Total</span><span>Rs. {{cart.summary().totalAmount|number}}</span></div></div></div></div></div>}
-=======
-  <h4 class="mb-3">Checkout</h4>
 
-  @if (orderPlaced && orderResult) {
+  @if (order) {
     <div class="card erp-card">
       <div class="card-body text-center py-5">
         <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
-        <h5>Order Placed Successfully!</h5>
-        <p class="text-muted mb-1">Order No: <strong>{{ orderResult.orderNo }}</strong></p>
-        <p class="text-muted mb-1">Payment: {{ orderResult.paymentMethod }}</p>
-        @if (orderResult.bankName) {
-          <p class="text-muted mb-1">Bank: {{ orderResult.bankName }}</p>
-        }
-        @if (orderResult.amountPaid) {
-          <p class="text-muted mb-1">Amount: Rs. {{ orderResult.amountPaid | number }}</p>
-        }
-        <span class="badge fs-6" [class.text-bg-success]="orderResult.paymentStatus !== 'Pending'" [class.text-bg-warning]="orderResult.paymentStatus === 'Pending'">
-          {{ orderResult.paymentStatus }}
-        </span>
-        @if (orderResult.paymentStatus === 'Pending') {
-          <p class="text-muted small mt-2">Aapki payment verify hone ka intezar hai — hum jaldi confirm kar denge.</p>
-        }
-        <div class="mt-3">
-          <button class="btn btn-primary-dark" (click)="backToDashboard()">Back to Dashboard</button>
+        <h4 class="mt-3">Order Placed Successfully</h4>
+        <p>Order No: <b>{{ order.orderNumber }}</b></p>
+        <p>Invoice No: <b>{{ order.invoiceNumber || '-' }}</b></p>
+        <p>Total: <b>Rs. {{ order.finalAmount | number }}</b></p>
+        <p>Payment: <span class="badge text-bg-warning">{{ order.paymentStatus }}</span></p>
+
+        <div class="d-flex justify-content-center gap-2">
+          <button class="btn btn-primary-dark" (click)="print()">
+            <i class="bi bi-printer me-1"></i>Print Invoice
+          </button>
+          <button class="btn btn-outline-secondary" (click)="orders()">Order History</button>
         </div>
       </div>
     </div>
   } @else {
+    <h4 class="mb-3">Checkout</h4>
+
+    @if (error) {
+      <div class="alert alert-danger">{{ error }}</div>
+    }
+
     <div class="row g-3">
-      <!-- LEFT: Order summary with item thumbnails -->
+
       <div class="col-lg-5">
         <div class="card erp-card h-100">
           <div class="card-body">
-            <h6 class="mb-3"><i class="bi bi-bag-check me-2"></i>Order Summary</h6>
+            <h6 class="mb-3">
+              <i class="bi bi-bag-check me-2"></i>Order Summary
+            </h6>
 
-            <div class="checkout-items">
-              @for (item of cart.summary().items; track item.id) {
-                <div class="checkout-item d-flex align-items-center gap-3 py-2 border-bottom">
-                  @if (item.imageUrl) {
-                    <img [src]="item.imageUrl" class="checkout-item-thumb">
-                  } @else {
-                    <div class="checkout-item-thumb checkout-item-thumb-placeholder">
-                      <i class="bi bi-image"></i>
-                    </div>
-                  }
-                  <div class="flex-grow-1">
-                    <div class="fw-semibold small">{{ item.name }}</div>
-                    <div class="text-muted small">Qty: {{ item.qty }} &times; Rs. {{ item.price | number }}</div>
+            @for (item of cart.summary().items; track item.id) {
+              <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+
+                @if (item.imageUrl) {
+                  <img
+                    [src]="item.imageUrl"
+                    class="checkout-item-thumb"
+                    [alt]="item.productName">
+                } @else {
+                  <div class="checkout-item-thumb checkout-item-thumb-placeholder">
+                    <i class="bi bi-image"></i>
                   </div>
-                  <div class="fw-semibold">Rs. {{ item.qty * item.price | number }}</div>
+                }
+
+                <div class="flex-grow-1">
+                  <div class="fw-semibold small">{{ item.productName }}</div>
+                  <div class="text-muted small">
+                    Qty: {{ item.quantity }} × Rs. {{ item.unitPrice | number }}
+                  </div>
                 </div>
-              }
-            </div>
+
+                <div class="fw-semibold">
+                  Rs. {{ item.total | number }}
+                </div>
+              </div>
+            }
 
             <div class="d-flex justify-content-between text-muted small mt-3 pt-2">
-              <span>Subtotal ({{ cart.summary().totalQty }} items)</span>
+              <span>Subtotal ({{ cart.summary().totalQuantity }} items)</span>
               <span>Rs. {{ cart.summary().totalAmount | number }}</span>
             </div>
+
             <div class="d-flex justify-content-between fw-bold fs-5 mt-2 pt-2 border-top">
               <span>Total</span>
-              <span class="text-primary-em">Rs. {{ cart.summary().totalAmount | number }}</span>
+              <span>Rs. {{ cart.summary().totalAmount | number }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: Payment method selection -->
       <div class="col-lg-7">
-        <div class="card erp-card">
-          <div class="card-body">
-            <form [formGroup]="form" (ngSubmit)="placeOrder()">
-              @if (errorMsg) {
-                <div class="alert alert-danger py-2 small">{{ errorMsg }}</div>
+        <form [formGroup]="form" (ngSubmit)="placeOrder()">
+
+          <div class="card erp-card mb-3">
+            <div class="card-body">
+              <h6 class="mb-3">
+                <i class="bi bi-geo-alt me-2"></i>Shipping Address
+              </h6>
+
+              @if (addresses.length) {
+                <select class="form-select mb-3" formControlName="shippingAddressId">
+                  @for (a of addresses; track a.id) {
+                    <option [value]="a.id">
+                      {{ a.addressLine }}, {{ a.city }} {{ a.isDefault ? '(Default)' : '' }}
+                    </option>
+                  }
+                </select>
               }
 
-              <h6 class="mb-3"><i class="bi bi-credit-card me-2"></i>How will you pay?</h6>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <input class="form-control" placeholder="Address line" formControlName="addressLine">
+                </div>
 
-              <div class="payment-method-grid mb-3">
-                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.Cash" (click)="selectPaymentMethod(PaymentMethod.Cash)">
-                  <i class="bi bi-cash-coin"></i>
-                  <span>Cash</span>
-                </button>
-                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.BankTransfer" (click)="selectPaymentMethod(PaymentMethod.BankTransfer)">
-                  <i class="bi bi-bank"></i>
-                  <span>Bank Transfer</span>
-                </button>
-                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.EasyPaisa" (click)="selectPaymentMethod(PaymentMethod.EasyPaisa)">
-                  <i class="bi bi-phone"></i>
-                  <span>Easypaisa</span>
-                </button>
-                <button type="button" class="payment-method-card" [class.selected]="f.paymentMethod.value === PaymentMethod.JazzCash" (click)="selectPaymentMethod(PaymentMethod.JazzCash)">
-                  <i class="bi bi-phone"></i>
-                  <span>JazzCash</span>
-                </button>
+                <div class="col-md-6">
+                  <input class="form-control" placeholder="City" formControlName="city">
+                </div>
+
+                <div class="col-md-4">
+                  <input class="form-control" placeholder="Area" formControlName="area">
+                </div>
+
+                <div class="col-md-4">
+                  <input class="form-control" placeholder="Postal code" formControlName="postalCode">
+                </div>
+
+                <div class="col-md-4">
+                  <button type="button" class="btn btn-outline-secondary w-100" (click)="saveAddress()">
+                    Save Address
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card erp-card">
+            <div class="card-body">
+              <h6 class="mb-3">
+                <i class="bi bi-credit-card me-2"></i>Payment Method
+              </h6>
+
+              <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                  <label class="border rounded p-3 w-100">
+                    <input
+                      type="radio"
+                      formControlName="paymentMethod"
+                      [value]="PaymentMethod.CashOnDelivery"
+                      class="me-2">
+                    Cash on Delivery
+                  </label>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="border rounded p-3 w-100">
+                    <input
+                      type="radio"
+                      formControlName="paymentMethod"
+                      [value]="PaymentMethod.Card"
+                      class="me-2">
+                    Card (Online)
+                  </label>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="border rounded p-3 w-100">
+                    <input
+                      type="radio"
+                      formControlName="paymentMethod"
+                      [value]="PaymentMethod.OnlineBankTransfer"
+                      class="me-2">
+                    Bank Transfer
+                  </label>
+                </div>
               </div>
 
-              @if (f.paymentMethod.value === PaymentMethod.Cash) {
-                <div class="cash-note">
-                  <i class="bi bi-info-circle me-2"></i>
-                  Aap delivery/counter pe cash de sakte hain — order turant confirm ho jayega.
-                </div>
-              }
-
-              @if (needsBankDetails) {
-                <div class="row g-3 mt-1">
-                  @if (isBankTransfer) {
-                    <div class="col-md-6">
-                      <label class="form-label">Select Bank</label>
-                      @if (banksLoading) {
-                        <div class="form-control-sm text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading banks...</div>
-                      } @else if (banks.length > 0) {
-                        <select class="form-select" formControlName="bankName">
-                          <option value="" disabled>Choose your bank</option>
-                          @for (b of banks; track $index) {
-                            <option [value]="b.name">{{ b.name }}</option>
-                          }
-                        </select>
-                      } @else {
-                        <input type="text" class="form-control" formControlName="bankName" placeholder="e.g. Al Habib Bank">
-                      }
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">Account Number <span class="text-muted">(optional)</span></label>
-                      <input type="text" class="form-control" formControlName="accountNumber" placeholder="Your account/IBAN">
-                    </div>
-                  }
+              @if (bankTransfer) {
+                <div class="row g-3">
                   <div class="col-md-6">
-                    <label class="form-label">Transaction Reference No.</label>
-                    <input type="text" class="form-control" formControlName="transactionReference" placeholder="e.g. TXN-8827364">
+                    <label class="form-label">Bank</label>
+                    <input class="form-control" formControlName="bankName" placeholder="e.g. HBL">
                   </div>
+
                   <div class="col-md-6">
-                    <label class="form-label">Amount Paid (Rs.)</label>
-                    <input type="number" min="0" class="form-control" formControlName="amountPaid" [placeholder]="cart.summary().totalAmount.toString()">
+                    <label class="form-label">Transaction Reference</label>
+                    <input
+                      class="form-control"
+                      formControlName="transactionReference"
+                      placeholder="e.g. TXN-8827364">
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">Payment Proof</label>
+                    <input
+                      type="file"
+                      class="form-control"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      (change)="fileChanged($event)">
+
+                    @if (uploading) {
+                      <small class="text-muted d-block mt-1">Uploading...</small>
+                    }
+
+                    @if (proofName) {
+                      <small class="text-success d-block mt-1">
+                        {{ proofName }} uploaded.
+                      </small>
+                    }
                   </div>
                 </div>
               }
 
-              <button type="submit" class="btn btn-primary-dark w-100 mt-4 py-2" [disabled]="cart.summary().items.length === 0 || submitting">
+              <div class="mt-3">
+                <label class="form-label">Shipping Amount</label>
+                <input
+                  type="number"
+                  min="0"
+                  class="form-control"
+                  formControlName="shippingAmount">
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary-dark w-100 mt-4 py-2"
+                [disabled]="submitting || uploading || cart.summary().items.length === 0">
+
                 @if (submitting) {
-                  <span class="spinner-border spinner-border-sm me-2"></span> Placing order...
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Placing order...
                 } @else {
-                  <i class="bi bi-lock-fill me-2"></i> Place Order &mdash; Rs. {{ cart.summary().totalAmount | number }}
+                  <i class="bi bi-lock-fill me-2"></i>
+                  Place Order — Rs.
+                  {{ cart.summary().totalAmount + f.shippingAmount.value | number }}
                 }
+
               </button>
-            </form>
+            </div>
           </div>
-        </div>
+
+        </form>
       </div>
+
     </div>
   }
->>>>>>> 5149b2c6453205bb16ba4ac8b50d65beef032793
 </div>

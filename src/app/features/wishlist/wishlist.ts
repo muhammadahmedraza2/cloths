@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+
 import { WishItem, WishlistService } from '../../core/services/wishlist.service';
 import { CartService } from '../../core/services/Cart.Service';
 
@@ -8,11 +9,11 @@ import { CartService } from '../../core/services/Cart.Service';
   selector: 'app-wishlist',
   standalone: true,
   imports: [RouterLink, DecimalPipe],
-  templateUrl: './wishlist.html',
+  templateUrl: './wishlist.html'
 })
 export class WishlistComponent implements OnInit {
-  wishlist = inject(WishlistService);
-  private cart = inject(CartService);
+  readonly wishlist = inject(WishlistService);
+  private readonly cart = inject(CartService);
 
   readonly message = signal('');
   readonly errorMsg = signal('');
@@ -25,20 +26,18 @@ export class WishlistComponent implements OnInit {
     this.message.set('');
     this.errorMsg.set('');
 
-    this.cart
-      .addToCart({
-        productId: item.productId,
-        name: item.name,
-        imageUrl: item.imageUrl,
-        price: item.price,
-      })
-      .subscribe({
-        next: () => {
-          this.wishlist.remove(item.productId);
-          this.message.set(`${item.name} moved to your cart.`);
-        },
-        error: () => this.errorMsg.set('Could not add to cart. Please try again.'),
-      });
+    this.cart.addToCart({
+      productVariantId: item.productVariantId,
+      quantity: 1
+    }).subscribe({
+      next: () => {
+        this.wishlist.remove(item.productId);
+        this.message.set(`${item.name} moved to your cart.`);
+      },
+      error: () => {
+        this.errorMsg.set('Could not add to cart. Please try again.');
+      }
+    });
   }
 
   remove(item: WishItem): void {
