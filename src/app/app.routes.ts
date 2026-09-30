@@ -1,11 +1,14 @@
 import { Routes } from '@angular/router';
+
 import { MainLayoutComponent } from './layout/main-layout/main-layout';
+
 import { DashboardComponent } from './features/dashboard/dashboard';
 import { MasterListComponent } from './features/master-list/master-list';
 import { HelpComponent } from './features/help/help';
 import { PrivacyComponent } from './features/privacy/privacy';
+
 import { LoginComponent } from './features/login/login';
-import { RegisterComponent } from './features/register/register';
+
 import { CartComponent } from './features/cart/cart/cart';
 import { WishlistComponent } from './features/wishlist/wishlist';
 import { CheckoutComponent } from './features/checkout/checkout/checkout';
@@ -20,126 +23,159 @@ import { adminGuard } from './core/guards/admin.guard';
 import { formAccessGuard } from './core/guards/form-access.guard';
 
 export const routes: Routes = [
+
+  // =========================================================
+  // CUSTOMER PUBLIC WEBSITE
+  // =========================================================
+
   {
     path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
+    component: ShopComponent,
   },
+
+  {
+    path: 'shop',
+    component: ShopComponent,
+  },
+
+  {
+    path: 'cart',
+    component: CartComponent,
+  },
+
+  {
+    path: 'wishlist',
+    component: WishlistComponent,
+  },
+
+  {
+    path: 'checkout',
+    component: CheckoutComponent,
+  },
+
+  {
+    path: 'orders',
+    component: OrdersComponent,
+  },
+
+  {
+    path: 'profile',
+    component: ProfileComponent,
+  },
+
+  {
+    path: 'help',
+    component: HelpComponent,
+  },
+
+  {
+    path: 'privacy',
+    component: PrivacyComponent,
+  },
+
+  // =========================================================
+  // ADMIN LOGIN
+  // =========================================================
 
   {
     path: 'login',
     component: LoginComponent,
-    canActivate: [guestGuard]
+    canActivate: [guestGuard],
   },
 
-  {
-    path: 'register',
-    component: RegisterComponent,
-    canActivate: [guestGuard]
-  },
+  // =========================================================
+  // ADMIN AREA
+  // =========================================================
 
   {
     path: 'app',
     component: MainLayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminGuard],
+
     children: [
+
       {
         path: '',
         redirectTo: 'dashboard',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
+
+      // -----------------------------------------------------
+      // ADMIN DASHBOARD
+      // -----------------------------------------------------
 
       {
         path: 'dashboard',
         component: DashboardComponent,
-        data: { title: 'Dashboard' }
+        data: {
+          title: 'Dashboard',
+        },
       },
 
-      {
-        path: 'shop',
-        component: ShopComponent,
-        data: { title: 'Kids Clothing Shop' }
-      },
-
-      {
-        path: 'cart',
-        component: CartComponent,
-        data: { title: 'Shopping Cart' }
-      },
-
-      {
-        path: 'FrmList/7001',
-        component: CartComponent,
-        data: { title: 'Shopping Cart' }
-      },
-
-      {
-        path: 'wishlist',
-        component: WishlistComponent,
-        data: { title: 'Wishlist' }
-      },
-
-      {
-        path: 'FrmList/7002',
-        component: WishlistComponent,
-        data: { title: 'Wishlist' }
-      },
-
-      {
-        path: 'checkout',
-        component: CheckoutComponent,
-        data: { title: 'Checkout' }
-      },
-
-      {
-        path: 'orders',
-        component: OrdersComponent,
-        data: { title: 'Orders' }
-      },
-
-      {
-        path: 'profile',
-        component: ProfileComponent,
-        data: { title: 'My Profile' }
-      },
-
-      {
-        path: 'admin',
-        component: AdminComponent,
-        canActivate: [adminGuard],
-        data: { title: 'Admin Console' }
-      },
+      // -----------------------------------------------------
+      // ADMIN FORM ROUTES
+      // -----------------------------------------------------
 
       {
         path: 'master/:formId',
         component: MasterListComponent,
         canActivate: [formAccessGuard],
-        data: { title: 'Setup' }
+        data: {
+          title: 'Setup',
+        },
       },
 
       {
         path: 'FrmList/:formId',
         component: MasterListComponent,
         canActivate: [formAccessGuard],
-        data: { title: 'Setup' }
+        data: {
+          title: 'Setup',
+        },
+      },
+
+      // -----------------------------------------------------
+      // ADMIN CART / WISHLIST SPECIAL FORMS
+      // -----------------------------------------------------
+
+      {
+        path: 'FrmList/7001',
+        component: CartComponent,
+        data: {
+          title: 'Shopping Cart',
+        },
       },
 
       {
-        path: 'help',
-        component: HelpComponent,
-        data: { title: 'Help & Support' }
+        path: 'FrmList/7002',
+        component: WishlistComponent,
+        data: {
+          title: 'Wishlist',
+        },
       },
 
+      // -----------------------------------------------------
+      // ADMIN CONSOLE
+      // -----------------------------------------------------
+
       {
-        path: 'privacy',
-        component: PrivacyComponent,
-        data: { title: 'Privacy and Policies' }
-      }
-    ]
+        path: 'admin',
+        component: AdminComponent,
+        canActivate: [adminGuard],
+        data: {
+          title: 'Admin Console',
+        },
+      },
+
+    ],
   },
+
+  // =========================================================
+  // UNKNOWN ROUTE
+  // =========================================================
 
   {
     path: '**',
-    redirectTo: 'login'
-  }
+    redirectTo: '',
+  },
 ];

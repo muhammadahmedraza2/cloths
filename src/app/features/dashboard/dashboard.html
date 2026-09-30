@@ -1,92 +1,149 @@
 <div class="page-wrap">
+
   @if (isAdmin) {
-    <!-- ===================== ADMIN DASHBOARD ===================== -->
+
+    <!-- ================= ADMIN DASHBOARD ================= -->
+
     <div class="welcome-banner mb-4">
-      <h2 class="mb-1">Welcome back, {{ userName }}</h2>
-      <p class="mb-0 text-mute">Sales, Purchase, Inventory, Setup &amp; Finance — all in one place.</p>
+      <h2 class="mb-1">
+        Welcome back, {{ userName }}
+      </h2>
+
+      <p class="mb-0 text-muted">
+        Sales, Purchase, Inventory, Setup &amp; Finance — all in one place.
+      </p>
     </div>
 
     <div class="row g-3">
+
       @for (card of cards; track card.formId) {
+
         <div class="col-6 col-md-4 col-lg-3">
-          <a class="dash-card text-decoration-none" [routerLink]="['/app/master', card.formId]">
-            <div class="dash-icon bg-{{ card.color }}-subtle text-{{ card.color }}">
-              <i class="bi {{ card.icon }}"></i>
+
+          <a
+            class="dash-card text-decoration-none"
+            [routerLink]="['/app/FrmList', card.formId]">
+
+            <div
+              class="dash-icon"
+              [class.bg-primary-subtle]="card.color === 'primary'"
+              [class.text-primary]="card.color === 'primary'"
+              [class.bg-success-subtle]="card.color === 'success'"
+              [class.text-success]="card.color === 'success'"
+              [class.bg-info-subtle]="card.color === 'info'"
+              [class.text-info]="card.color === 'info'"
+              [class.bg-warning-subtle]="card.color === 'warning'"
+              [class.text-warning]="card.color === 'warning'"
+              [class.bg-danger-subtle]="card.color === 'danger'"
+              [class.text-danger]="card.color === 'danger'"
+              [class.bg-secondary-subtle]="card.color === 'secondary'"
+              [class.text-secondary]="card.color === 'secondary'">
+
+              <i class="bi" [class]="card.icon"></i>
+
             </div>
-            <div class="dash-label">{{ card.label }}</div>
+
+            <div class="dash-label">
+              {{ card.label }}
+            </div>
+
           </a>
+
         </div>
+
       }
+
     </div>
+
   } @else {
-    <!-- ===================== CUSTOMER / SHOP DASHBOARD ===================== -->
-    <div class="welcome-banner mb-3">
-      <h2 class="mb-1">Welcome to Clothing ERP, {{ userName }}</h2>
-      <p class="mb-0 text-mute">Sales, Purchase, Inventory, Setup & Finance — all in one place.</p>
-    </div>
 
-    <div id="shopCarousel" class="carousel slide shop-carousel" data-bs-ride="carousel">
-      <div class="carousel-indicators">
-        @for (b of banners; track $index) {
-          <button type="button" data-bs-target="#shopCarousel" [attr.data-bs-slide-to]="$index" [class.active]="$index === 0"></button>
-        }
+    <!-- ================= CUSTOMER DASHBOARD ================= -->
+
+    <div class="customer-dashboard">
+
+      <!-- Customer Images / Banner -->
+
+      <div class="customer-hero mb-4">
+
+        <img
+          src="assets/fashion.jpeg"
+          alt="Clothing Collection"
+          class="img-fluid w-100">
+
       </div>
-      <div class="carousel-inner">
-        @for (b of banners; track $index) {
-          <div class="carousel-item" [class.active]="$index === 0">
-            <img [src]="b.image" [alt]="b.title">
-            <div class="carousel-caption d-none d-md-block">
-              <h4>{{ b.title }}</h4>
-              <p>{{ b.subtitle }}</p>
+
+      <!-- Customer Categories -->
+
+      <div class="mb-4">
+
+        <h4 class="mb-3">
+          Shop by Category
+        </h4>
+
+        <div class="row g-3">
+
+          @for (category of categories; track category.label) {
+
+            <div class="col-6 col-md-3">
+
+              <a
+                class="shop-category-card text-decoration-none"
+                [routerLink]="['/shop']">
+
+                <img
+                  [src]="category.image"
+                  [alt]="category.label"
+                  class="img-fluid">
+
+                <div class="shop-category-label">
+                  {{ category.label }}
+                </div>
+
+              </a>
+
             </div>
-          </div>
-        }
-      </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#shopCarousel" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#shopCarousel" data-bs-slide="next">
-        <span class="carousel-control-next-icon"></span>
-      </button>
-    </div>
 
-    <h5 class="mb-3">Shop by Category</h5>
-    <div class="row g-3 mb-4">
-      @for (cat of categories; track cat.label) {
-        <div class="col-6 col-md-3">
-          <a class="shop-category-card" [routerLink]="['/app/master', cat.formId]">
-            <img [src]="cat.image" [alt]="cat.label">
-            <div class="shop-category-label">{{ cat.label }}</div>
-          </a>
+          }
+
         </div>
-      }
+
+      </div>
+
+      <!-- Customer Clothing Images -->
+
+      <div class="row g-3">
+
+        <div class="col-6 col-md-4">
+
+          <img
+            src="assets/2pieces.jpeg"
+            alt="2 Piece Collection"
+            class="img-fluid rounded">
+
+        </div>
+
+        <div class="col-6 col-md-4">
+
+          <img
+            src="assets/frok.jpeg"
+            alt="Frock Collection"
+            class="img-fluid rounded">
+
+        </div>
+
+        <div class="col-6 col-md-4">
+
+          <img
+            src="assets/lenon.jpeg"
+            alt="Clothing Collection"
+            class="img-fluid rounded">
+
+        </div>
+
+      </div>
+
     </div>
 
-    <div class="row g-3">
-      <div class="col-md-4">
-        <a class="dash-card text-decoration-none" [routerLink]="['/app/cart']">
-          <div class="dash-icon bg-success-subtle text-success">
-            <i class="bi bi-cart-check"></i>
-          </div>
-          <div class="dash-label">My Cart</div>
-        </a>
-      </div>
-      <div class="col-md-4">
-        <a class="dash-card text-decoration-none" [routerLink]="['/app/wishlist']">
-          <div class="dash-icon bg-danger-subtle text-danger">
-            <i class="bi bi-heart"></i>
-          </div>
-          <div class="dash-label">My Wishlist</div>
-        </a>
-      </div>
-      <div class="col-md-4">
-        <a class="dash-card text-decoration-none" [routerLink]="['/app/help']">
-          <div class="dash-icon bg-info-subtle text-info">
-            <i class="bi bi-question-circle"></i>
-          </div>
-          <div class="dash-label">Help &amp; Support</div>
-        </a>
-      </div>
-    </div>
   }
+
 </div>

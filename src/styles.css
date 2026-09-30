@@ -423,6 +423,220 @@ body {
   cursor: pointer;
 }
 
+
+/* =========================================
+   CUSTOMER SHOP PRODUCT CARDS
+   ========================================= */
+
+.product-card {
+  border: 1px solid var(--crpl-border);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  height: auto !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ---------- Product Image ---------- */
+
+.product-image-box {
+  position: relative;
+  width: 100%;
+  height: 155px;
+  background: #f4f6f9;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* ---------- Image Placeholder ---------- */
+
+.product-image-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  color: #9aa4b2;
+  gap: 4px;
+}
+
+.product-image-placeholder i {
+  font-size: 32px;
+}
+
+.product-image-placeholder span {
+  font-size: 11px;
+}
+
+
+/* ---------- Stock Badge ---------- */
+
+.product-stock-badge {
+  position: absolute;
+
+  top: 7px;
+  right: 7px;
+
+  padding: 4px 7px;
+
+  border-radius: 5px;
+
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  line-height: 1;
+}
+
+.product-stock-in {
+  background: #198754;
+}
+
+.product-stock-out {
+  background: #dc3545;
+}
+
+
+/* ---------- Product Body ---------- */
+
+.product-card-body {
+  padding: 10px;
+}
+
+
+/* ---------- Category ---------- */
+
+.product-category {
+  color: #7b8491;
+
+  font-size: 10px;
+  line-height: 14px;
+
+  margin-bottom: 2px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ---------- Product Name ---------- */
+
+.product-title {
+  color: var(--crpl-text);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  line-height: 18px;
+
+  margin-bottom: 4px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ---------- Price ---------- */
+
+.product-price {
+  color: var(--crpl-primary-dark);
+
+  font-size: 15px;
+  font-weight: 700;
+
+  line-height: 20px;
+
+  margin-bottom: 2px;
+}
+
+
+/* ---------- Stock ---------- */
+
+.product-stock {
+  color: #7b8491;
+
+  font-size: 10px;
+
+  line-height: 16px;
+
+  margin-bottom: 8px;
+}
+
+
+/* ---------- Add To Cart ---------- */
+
+.product-cart-btn {
+  width: 100%;
+
+  min-height: 32px;
+
+  padding: 5px 8px;
+
+  border-radius: 6px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  line-height: 20px;
+}
+
+
+/* ---------- Disabled Button ---------- */
+
+.product-cart-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 576px) {
+
+  .product-image-box {
+    height: 130px;
+  }
+
+  .product-card-body {
+    padding: 8px;
+  }
+
+  .product-title {
+    font-size: 12px;
+  }
+
+  .product-price {
+    font-size: 14px;
+  }
+
+  .product-cart-btn {
+    font-size: 10px;
+    min-height: 30px;
+  }
+
+}
+
 /* ---------- Checkout ---------- */
 .checkout-item-thumb {
   width: 56px;

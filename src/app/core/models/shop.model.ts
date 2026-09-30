@@ -24,24 +24,44 @@ export interface Product {
   productName: string;
   sku: string;
   description?: string;
+
   categoryId: string;
   categoryName?: string;
+
   brandId?: string;
   brandName?: string;
+
   gender: number;
+
   ageGroupId?: string;
   ageGroupName?: string;
+
+  departmentId?: string;
+  departmentName?: string;
+
+  setTypeId?: string;
+  setTypeName?: string;
+  setIncludes?: string;
+
   fabric?: string;
   season?: string;
+
   purchasePrice: number;
   salePrice: number;
   discount: number;
   stockQuantity: number;
   minimumStockLevel: number;
+
   isActive: boolean;
   images: string[];
   variants: ProductVariant[];
 }
+export interface CatalogProductsResult {
+  found: boolean;
+  message?: string;
+  products: Product[];
+}
+
 
 export interface Category {
   id: string;

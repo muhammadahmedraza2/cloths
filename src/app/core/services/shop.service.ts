@@ -1,54 +1,57 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 import {
-  Product,
-  Category,
-  Brand,
-  Size,
-  Color,
-  AgeGroup,
-  CartResponse,
-  AddToCartApiRequest,
-  Address,
-  CreateOrderRequest,
-  Order,
-  Payment,
-  Dashboard,
-  UserSummary,
-  Supplier,
-  Invoice,
-  PaymentProof
+  Product, Category, Brand, Size, Color, AgeGroup,
+  CatalogProductsResult, CartResponse, AddToCartApiRequest,
+  Address, CreateOrderRequest, Order, Payment, Dashboard,
+  UserSummary, Supplier, Invoice, PaymentProof
 } from '../models/shop.model';
 
 @Injectable({ providedIn: 'root' })
 export class ShopService {
-  private readonly http = inject(HttpClient);
-  private readonly base = environment.apiUrl;
 
-  products(filters?: {
-    search?: string;
-    categoryId?: string;
-    ageGroupId?: string;
-    sizeId?: string;
-    colorId?: string;
-  }): Observable<Product[]> {
-    let params = new HttpParams();
+  private http = inject(HttpClient);
+  private base = environment.apiUrl;
 
-    Object.entries(filters ?? {}).forEach(([key, value]) => {
-      if (value) {
-        params = params.set(key, value);
-      }
-    });
-
-    return this.http.get<Product[]>(
-      `${this.base}/catalog/products`,
-      { params }
+  private list<T>(url: string, mapItem?: (x: any) => T): Observable<T[]> {
+    return this.http.get<any>(url).pipe(
+      map(r => {
+        const data = Array.isArray(r) ? r : r?.data ?? r?.Data ?? [];
+        return mapItem ? data.map(mapItem) : data;
+      })
     );
   }
+
+products(filters?: {
+  search?: string;
+  categoryId?: string;
+  ageGroupId?: string;
+  sizeId?: string;
+  colorId?: string;
+}): Observable<Product[]> {
+
+  let params = new HttpParams();
+
+  Object.entries(filters ?? {}).forEach(([key, value]) => {
+    if (value) params = params.set(key, value);
+  });
+
+  return this.http.get<any>(
+    `${this.base}/catalog/products`,
+    { params }
+  ).pipe(
+    map(r => {
+      const data = r?.data ?? r?.Data ?? r;
+
+      return data?.products ??
+             data?.Products ??
+             [];
+    })
+  );
+}
 
   product(id: string): Observable<Product> {
     return this.http.get<Product>(
@@ -57,52 +60,73 @@ export class ShopService {
   }
 
   categories(): Observable<Category[]> {
-    return this.http.get<Category[]>(
-      `${this.base}/catalog/categories`
+    return this.list(
+      `${this.base}/catalog/categories`,
+      x => ({
+        ...x,
+        id: x.id ?? x.Id,
+        name: x.name ?? x.Name
+      })
     );
   }
 
   brands(): Observable<Brand[]> {
-    return this.http.get<Brand[]>(
-      `${this.base}/catalog/brands`
+    return this.list(
+      `${this.base}/catalog/brands`,
+      x => ({
+        ...x,
+        id: x.id ?? x.Id,
+        name: x.name ?? x.Name
+      })
     );
   }
 
   sizes(): Observable<Size[]> {
-    return this.http.get<Size[]>(
-      `${this.base}/catalog/sizes`
+    return this.list(
+      `${this.base}/catalog/sizes`,
+      x => ({
+        ...x,
+        id: x.id ?? x.Id,
+        name: x.name ?? x.Name,
+        ageRange: x.ageRange ?? x.AgeRange
+      })
     );
   }
 
   colors(): Observable<Color[]> {
-    return this.http.get<Color[]>(
-      `${this.base}/catalog/colors`
+    return this.list(
+      `${this.base}/catalog/colors`,
+      x => ({
+        ...x,
+        id: x.id ?? x.Id,
+        name: x.name ?? x.Name,
+        hexCode: x.hexCode ?? x.HexCode
+      })
     );
   }
 
   ageGroups(): Observable<AgeGroup[]> {
-    return this.http.get<AgeGroup[]>(
-      `${this.base}/catalog/age-groups`
+    return this.list(
+      `${this.base}/catalog/age-groups`,
+      x => ({
+        ...x,
+        id: x.id ?? x.Id,
+        name: x.name ?? x.Name,
+        minAgeMonths: x.minAgeMonths ?? x.MinAgeMonths,
+        maxAgeMonths: x.maxAgeMonths ?? x.MaxAgeMonths
+      })
     );
   }
 
   cart(): Observable<CartResponse> {
-    return this.http.get<CartResponse>(
-      `${this.base}/cart`
-    );
+    return this.http.get<CartResponse>(`${this.base}/cart`);
   }
 
   addCart(dto: AddToCartApiRequest): Observable<CartResponse> {
-    return this.http.post<CartResponse>(
-      `${this.base}/cart/items`,
-      dto
-    );
+    return this.http.post<CartResponse>(`${this.base}/cart/items`, dto);
   }
 
-  updateCart(
-    id: string,
-    quantity: number
-  ): Observable<CartResponse> {
+  updateCart(id: string, quantity: number): Observable<CartResponse> {
     return this.http.put<CartResponse>(
       `${this.base}/cart/items/${id}`,
       { quantity }
@@ -116,49 +140,31 @@ export class ShopService {
   }
 
   clearCart(): Observable<void> {
-    return this.http.delete<void>(
-      `${this.base}/cart/clear`
-    );
+    return this.http.delete<void>(`${this.base}/cart/clear`);
   }
 
   addresses(): Observable<Address[]> {
-    return this.http.get<Address[]>(
-      `${this.base}/addresses`
-    );
+    return this.http.get<Address[]>(`${this.base}/addresses`);
   }
 
-  addAddress(
-    dto: Omit<Address, 'id' | 'userId'>
-  ): Observable<Address> {
-    return this.http.post<Address>(
-      `${this.base}/addresses`,
-      dto
-    );
+  addAddress(dto: Omit<Address, 'id' | 'userId'>): Observable<Address> {
+    return this.http.post<Address>(`${this.base}/addresses`, dto);
   }
 
   deleteAddress(id: string): Observable<void> {
-    return this.http.delete<void>(
-      `${this.base}/addresses/${id}`
-    );
+    return this.http.delete<void>(`${this.base}/addresses/${id}`);
   }
 
   checkout(dto: CreateOrderRequest): Observable<Order> {
-    return this.http.post<Order>(
-      `${this.base}/orders`,
-      dto
-    );
+    return this.http.post<Order>(`${this.base}/orders`, dto);
   }
 
   myOrders(): Observable<Order[]> {
-    return this.http.get<Order[]>(
-      `${this.base}/orders`
-    );
+    return this.http.get<Order[]>(`${this.base}/orders`);
   }
 
   order(id: string): Observable<Order> {
-    return this.http.get<Order>(
-      `${this.base}/orders/${id}`
-    );
+    return this.http.get<Order>(`${this.base}/orders/${id}`);
   }
 
   invoice(orderId: string): Observable<Invoice> {
@@ -196,10 +202,7 @@ export class ShopService {
     );
   }
 
-  setUserActive(
-    id: string,
-    value: boolean
-  ): Observable<any> {
+  setUserActive(id: string, value: boolean): Observable<any> {
     return this.http.patch(
       `${this.base}/admin/users/${id}/active?value=${value}`,
       {}
@@ -212,10 +215,7 @@ export class ShopService {
     );
   }
 
-  updateOrderStatus(
-    id: string,
-    status: number
-  ): Observable<any> {
+  updateOrderStatus(id: string, status: number): Observable<any> {
     return this.http.patch(
       `${this.base}/admin/orders/${id}/status`,
       { status }
@@ -228,30 +228,35 @@ export class ShopService {
     );
   }
 
-  updatePaymentStatus(
-    id: string,
-    status: number
-  ): Observable<any> {
+  updatePaymentStatus(id: string, status: number): Observable<any> {
     return this.http.patch(
       `${this.base}/admin/payments/${id}/status`,
       { status }
     );
   }
 
-  saveProduct(
-    dto: any,
-    id?: string
-  ): Observable<Product> {
-    return id
-      ? this.http.put<Product>(
-          `${this.base}/admin/products/${id}`,
-          dto
-        )
-      : this.http.post<Product>(
-          `${this.base}/admin/products`,
-          dto
-        );
-  }
+saveProduct(dto: any, id?: string): Observable<Product> {
+  return id
+    ? this.http.put<Product>(
+        `${this.base}/admin/products/${id}`,
+        dto
+      )
+    : this.http.post<Product>(
+        `${this.base}/admin/products`,
+        dto
+      );
+}
+
+uploadProductImage(file: File): Observable<{ url: string }> {
+  const form = new FormData();
+
+  form.append('file', file);
+
+  return this.http.post<{ url: string }>(
+    `${this.base}/admin/product-images`,
+    form
+  );
+}
 
   deleteProduct(id: string): Observable<any> {
     return this.http.delete(
@@ -259,79 +264,34 @@ export class ShopService {
     );
   }
 
-  saveCategory(
-    dto: any,
-    id?: string
-  ): Observable<any> {
+  saveCategory(dto: any, id?: string): Observable<any> {
     return id
-      ? this.http.put(
-          `${this.base}/admin/categories/${id}`,
-          dto
-        )
-      : this.http.post(
-          `${this.base}/admin/categories`,
-          dto
-        );
+      ? this.http.put(`${this.base}/admin/categories/${id}`, dto)
+      : this.http.post(`${this.base}/admin/categories`, dto);
   }
 
-  saveBrand(
-    dto: any,
-    id?: string
-  ): Observable<any> {
+  saveBrand(dto: any, id?: string): Observable<any> {
     return id
-      ? this.http.put(
-          `${this.base}/admin/brands/${id}`,
-          dto
-        )
-      : this.http.post(
-          `${this.base}/admin/brands`,
-          dto
-        );
+      ? this.http.put(`${this.base}/admin/brands/${id}`, dto)
+      : this.http.post(`${this.base}/admin/brands`, dto);
   }
 
-  saveSize(
-    dto: any,
-    id?: string
-  ): Observable<any> {
+  saveSize(dto: any, id?: string): Observable<any> {
     return id
-      ? this.http.put(
-          `${this.base}/admin/sizes/${id}`,
-          dto
-        )
-      : this.http.post(
-          `${this.base}/admin/sizes`,
-          dto
-        );
+      ? this.http.put(`${this.base}/admin/sizes/${id}`, dto)
+      : this.http.post(`${this.base}/admin/sizes`, dto);
   }
 
-  saveColor(
-    dto: any,
-    id?: string
-  ): Observable<any> {
+  saveColor(dto: any, id?: string): Observable<any> {
     return id
-      ? this.http.put(
-          `${this.base}/admin/colors/${id}`,
-          dto
-        )
-      : this.http.post(
-          `${this.base}/admin/colors`,
-          dto
-        );
+      ? this.http.put(`${this.base}/admin/colors/${id}`, dto)
+      : this.http.post(`${this.base}/admin/colors`, dto);
   }
 
-  saveAgeGroup(
-    dto: any,
-    id?: string
-  ): Observable<any> {
+  saveAgeGroup(dto: any, id?: string): Observable<any> {
     return id
-      ? this.http.put(
-          `${this.base}/admin/age-groups/${id}`,
-          dto
-        )
-      : this.http.post(
-          `${this.base}/admin/age-groups`,
-          dto
-        );
+      ? this.http.put(`${this.base}/admin/age-groups/${id}`, dto)
+      : this.http.post(`${this.base}/admin/age-groups`, dto);
   }
 
   suppliers(): Observable<Supplier[]> {
@@ -340,10 +300,7 @@ export class ShopService {
     );
   }
 
-  saveSupplier(
-    dto: any,
-    id?: string
-  ): Observable<Supplier> {
+  saveSupplier(dto: any, id?: string): Observable<Supplier> {
     return id
       ? this.http.put<Supplier>(
           `${this.base}/admin/suppliers/${id}`,
