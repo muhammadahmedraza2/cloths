@@ -11,52 +11,56 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const tokenService = inject(TokenService);
   const router = inject(Router);
 
-  const token = tokenService.getToken();
+  const token =
+    tokenService.getToken();
 
   const isApiCall =
-    req.url.startsWith(environment.apiUrl);
+    req.url.startsWith(
+      environment.apiUrl
+    );
 
-  const url = req.url.toLowerCase();
+  const url =
+    req.url.toLowerCase();
 
-  const isLogin =
+  const isLoginCall =
     url.includes('/auth/login');
 
-  const isLogout =
+  const isLogoutCall =
     url.includes('/auth/logout');
 
-  const isRefresh =
+  const isRefreshCall =
     url.includes('/auth/refresh');
 
-  let authReq = req;
-
-  if (token && isApiCall) {
-    authReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
+  const authReq =
+    token && isApiCall
+      ? req.clone({
+          setHeaders: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        })
+      : req;
 
   return next(authReq).pipe(
 
     catchError(error => {
 
-      /*
-       * Do not automatically logout from
-       * authentication endpoints.
-       */
       if (
         error.status === 401 &&
-        !isLogin &&
-        !isLogout &&
-        !isRefresh
+        !isLoginCall &&
+        !isLogoutCall &&
+        !isRefreshCall
       ) {
         tokenService.clearSession();
 
-        router.navigate(['/login']);
+        router.navigate(
+          ['/login']
+        );
       }
 
-      return throwError(() => error);
+      return throwError(
+        () => error
+      );
     })
   );
 };
