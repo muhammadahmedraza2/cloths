@@ -1,5 +1,5 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { Injector, inject } from '@angular/core';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
@@ -11,26 +11,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const tokenService = inject(TokenService);
   const router = inject(Router);
-  const injector = inject(Injector);
+  const authService = inject(AuthService);
 
-  const isApiCall =
-    req.url.startsWith(environment.apiUrl);
+  const url = req.url.toLowerCase();
 
-  const url =
-    req.url.toLowerCase();
+  const isApiCall = req.url.startsWith(environment.apiUrl);
 
-  const isLoginCall =
-    url.includes('/auth/login');
+  const isLoginCall = url.includes('/auth/login');
+  const isLogoutCall = url.includes('/auth/logout');
+  const isRefreshCall = url.includes('/auth/refresh');
 
-  const isLogoutCall =
-    url.includes('/auth/logout');
+  const token = tokenService.getToken();
 
-  const isRefreshCall =
-    url.includes('/auth/refresh');
-
-  const token =
-    tokenService.getToken();
-
+  /*
+   * Attach JWT to every API request.
+   */
   const authReq =
     token && isApiCall
       ? req.clone({
@@ -41,13 +36,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       : req;
 
   return next(authReq).pipe(
+
     catchError((error) => {
 
       /*
-       * Never trigger logout recursively for:
-       * - login
-       * - logout
-       * - refresh
+       * Do not logout recursively for authentication endpoints.
        */
       if (
         error.status === 401 &&
@@ -55,11 +48,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         !isLogoutCall &&
         !isRefreshCall
       ) {
-        injector
-          .get(AuthService)
-          .logout();
+        tokenService.clearSession();
 
-        router.navigate(['/login']);
+        router.navigate(['/login'], {
+          queryParams: {
+            returnUrl: router.url
+          }
+        });
       }
 
       return throwError(() => error);
