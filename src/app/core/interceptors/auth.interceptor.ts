@@ -8,6 +8,7 @@ import { TokenService } from '../services/token.service';
 import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+
   const tokenService = inject(TokenService);
   const router = inject(Router);
   const injector = inject(Injector);
@@ -15,8 +16,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isApiCall =
     req.url.startsWith(environment.apiUrl);
 
+  const url =
+    req.url.toLowerCase();
+
   const isLoginCall =
-    req.url.toLowerCase().includes('/auth/login');
+    url.includes('/auth/login');
+
+  const isLogoutCall =
+    url.includes('/auth/logout');
+
+  const isRefreshCall =
+    url.includes('/auth/refresh');
 
   const token =
     tokenService.getToken();
@@ -33,9 +43,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error) => {
 
+      /*
+       * Never trigger logout recursively for:
+       * - login
+       * - logout
+       * - refresh
+       */
       if (
         error.status === 401 &&
-        !isLoginCall
+        !isLoginCall &&
+        !isLogoutCall &&
+        !isRefreshCall
       ) {
         injector
           .get(AuthService)
