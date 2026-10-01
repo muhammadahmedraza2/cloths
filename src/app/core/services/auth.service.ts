@@ -93,21 +93,42 @@ export class AuthService {
     );
   }
 
-  logout(): void {
+  // logout(): void {
+  //   this.http.post(
+  //     `${environment.apiUrl}/auth/logout`,
+  //     {}
+  //   ).subscribe({
+  //     error: () => undefined
+  //   });
+
+  //   this.tokenService.clearSession();
+  //   this.menuService.clearCache();
+  //   this.cartService.clear();
+
+  //   localStorage.removeItem(this.USER_KEY);
+  //   this.currentUser.set(null);
+  // }
+
+logout(): void {
+
+  const token = this.tokenService.getToken();
+
+  if (token) {
     this.http.post(
       `${environment.apiUrl}/auth/logout`,
       {}
     ).subscribe({
       error: () => undefined
     });
-
-    this.tokenService.clearSession();
-    this.menuService.clearCache();
-    this.cartService.clear();
-
-    localStorage.removeItem(this.USER_KEY);
-    this.currentUser.set(null);
   }
+
+  this.tokenService.clearSession();
+  this.menuService.clearCache();
+  this.cartService.clear();
+
+  localStorage.removeItem(this.USER_KEY);
+  this.currentUser.set(null);
+}
 
   isAdmin(): boolean {
     const role = (
