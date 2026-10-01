@@ -5,56 +5,55 @@ import { catchError, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { TokenService } from '../services/token.service';
-import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const tokenService = inject(TokenService);
   const router = inject(Router);
-  const authService = inject(AuthService);
-
-  const url = req.url.toLowerCase();
-
-  const isApiCall = req.url.startsWith(environment.apiUrl);
-
-  const isLoginCall = url.includes('/auth/login');
-  const isLogoutCall = url.includes('/auth/logout');
-  const isRefreshCall = url.includes('/auth/refresh');
 
   const token = tokenService.getToken();
 
-  /*
-   * Attach JWT to every API request.
-   */
-  const authReq =
-    token && isApiCall
-      ? req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-      : req;
+  const isApiCall =
+    req.url.startsWith(environment.apiUrl);
+
+  const url = req.url.toLowerCase();
+
+  const isLogin =
+    url.includes('/auth/login');
+
+  const isLogout =
+    url.includes('/auth/logout');
+
+  const isRefresh =
+    url.includes('/auth/refresh');
+
+  let authReq = req;
+
+  if (token && isApiCall) {
+    authReq = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
 
   return next(authReq).pipe(
 
-    catchError((error) => {
+    catchError(error => {
 
       /*
-       * Do not logout recursively for authentication endpoints.
+       * Do not automatically logout from
+       * authentication endpoints.
        */
       if (
         error.status === 401 &&
-        !isLoginCall &&
-        !isLogoutCall &&
-        !isRefreshCall
+        !isLogin &&
+        !isLogout &&
+        !isRefresh
       ) {
         tokenService.clearSession();
 
-        router.navigate(['/login'], {
-          queryParams: {
-            returnUrl: router.url
-          }
-        });
+        router.navigate(['/login']);
       }
 
       return throwError(() => error);
