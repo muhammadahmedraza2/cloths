@@ -24,6 +24,8 @@ export class ShopComponent implements OnInit {
   colors: Color[] = [];
   ages: AgeGroup[] = [];
   error = '';
+  success = '';
+  addingId = '';
   private apiRoot = environment.apiUrl.replace(/\/api\/?$/, '');
 
   filter = this.fb.nonNullable.group({
@@ -126,57 +128,52 @@ export class ShopComponent implements OnInit {
     return this.getAvailableVariant(product) !== null;
   }
 
-  add(product: Product): void {
+add(product: Product): void {
 
-    this.error = '';
+  this.error = '';
+  this.success = '';
+  this.addingId = product.id;
 
-    const variant =
-      this.getAvailableVariant(product);
+  const variant = this.getAvailableVariant(product);
 
-    if (!variant) {
+  if (!variant) {
 
-      this.error =
-        'This product is currently out of stock.';
+    this.addingId = '';
+    this.error = 'This product is currently out of stock.';
 
-      return;
+    return;
+  }
+
+  this.cart.addToCart({
+    productVariantId: variant.id,
+    quantity: 1
+  }).subscribe({
+
+    next: () => {
+
+      this.addingId = '';
+
+      this.router.navigate(['/app/cart']);
+
+    },
+
+    error: e => {
+
+      this.addingId = '';
+
+      this.error = this.getError(
+        e,
+        'Could not add product to cart.'
+      );
+
     }
 
-    this.cart.addToCart({
-
-      productVariantId:
-        variant.id,
-
-      quantity: 1
-
-    }).subscribe({
-
-      next: () => {
-
-        this.router.navigate([
-          '/app/cart'
-        ]);
-
-      },
-
-      error: e => {
-
-        this.error =
-          this.getError(
-            e,
-            'Could not add product to cart.'
-          );
-
-      }
-
-    });
-  }
+  });
+}
 
   view(id: string): void {
 
-    this.router.navigate([
-      '/app/shop',
-      id
-    ]);
+    this.router.navigate(['/shop'], { queryParams: { product: id } });
 
   }
 

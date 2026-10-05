@@ -64,7 +64,7 @@ export class CheckoutComponent implements OnInit {
 
     this.cart.loadCart().subscribe({
       next: cart => {
-        if (!cart.items.length) this.router.navigate(['/app/cart']);
+        if (!cart.items.length) this.router.navigate(['/cart']);
       },
       error: () => this.error = 'Could not load your cart. Please try again.'
     });
@@ -175,6 +175,6 @@ export class CheckoutComponent implements OnInit {
   }
 
   orders(): void {
-    this.router.navigate(['/app/orders']);
+    this.router.navigate(['/orders']);
   }
 }

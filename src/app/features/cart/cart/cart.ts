@@ -56,7 +56,7 @@ export class CartComponent implements OnInit {
 
   proceed(): void {
     if (this.cart.summary().items.length) {
-      this.router.navigate(['/app/checkout']);
+      this.router.navigate(['/checkout']);
     }
   }
 }

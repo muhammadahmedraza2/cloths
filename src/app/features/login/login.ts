@@ -55,7 +55,7 @@ export class LoginComponent {
 
         this.submitting = false;
 
-        this.router.navigate(['/app/dashboard']);
+        this.router.navigate([this.auth.isAdmin() ? '/app/dashboard' : '/shop']);
 
       },
 
@@ -65,7 +65,7 @@ export class LoginComponent {
 
         this.errorMsg =
           err.status === 401
-            ? 'Invalid admin username or password.'
+            ? 'Invalid username or password.'
             : 'Something went wrong. Please check your connection and try again.';
 
       },

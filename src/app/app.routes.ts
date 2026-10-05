@@ -41,26 +41,31 @@ export const routes: Routes = [
   {
     path: 'cart',
     component: CartComponent,
+    canActivate: [authGuard],
   },
 
   {
     path: 'wishlist',
     component: WishlistComponent,
+    canActivate: [authGuard],
   },
 
   {
     path: 'checkout',
     component: CheckoutComponent,
+    canActivate: [authGuard],
   },
 
   {
     path: 'orders',
     component: OrdersComponent,
+    canActivate: [authGuard],
   },
 
   {
     path: 'profile',
     component: ProfileComponent,
+    canActivate: [authGuard],
   },
 
   {
@@ -110,6 +115,28 @@ export const routes: Routes = [
         data: {
           title: 'Dashboard',
         },
+      },
+
+      // Admin can also use the same storefront/cart/order screens.
+      {
+        path: 'shop',
+        component: ShopComponent,
+        data: { title: 'Shop' },
+      },
+      {
+        path: 'cart',
+        component: CartComponent,
+        data: { title: 'Shopping Cart' },
+      },
+      {
+        path: 'orders',
+        component: OrdersComponent,
+        data: { title: 'Orders' },
+      },
+      {
+        path: 'profile',
+        component: ProfileComponent,
+        data: { title: 'Profile' },
       },
 
       // -----------------------------------------------------
